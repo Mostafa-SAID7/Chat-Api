@@ -1,4 +1,4 @@
-modules = ["dotnet-9.0", "nodejs-20", "docker", "web"]
+modules = ["dotnet-9.0", "web"]
 
 [agent]
 expertMode = true
@@ -7,26 +7,20 @@ stack = "BEST_EFFORT_FALLBACK"
 [nix]
 channel = "stable-25_05"
 
-# Environment setup
+# Environment setup for Replit
 [env]
 JWT_KEY = "your_super_secret_key_minimum_32_characters_long_for_development"
 ASPNETCORE_ENVIRONMENT = "Development"
 ASPNETCORE_URLS = "http://0.0.0.0:5000"
-MongoDB__ConnectionString = "mongodb://localhost:27017/chatdb"
-Redis__ConnectionString = "localhost:6379"
 
-# Workflow configuration
+# Simplified workflow for Replit
 [workflows]
-runButton = "Dev Setup"
+runButton = "Run API"
 
 [[workflows.workflow]]
-name = "Dev Setup"
+name = "Run API"
 mode = "sequential"
 author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "echo '🚀 Chat API - Development Setup' && echo 'Building and starting services...'"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
@@ -38,32 +32,20 @@ args = "cd apiContact && dotnet build"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd apiContact && dotnet run --no-build"
+args = "cd apiContact && dotnet run"
 waitForPort = 5000
 
 [workflows.workflow.metadata]
 outputType = "webview"
 
-# Port configuration
+# Port configuration - Main API
 [[ports]]
 localPort = 5000
 externalPort = 80
-description = "Chat API - ASP.NET Core"
+description = "Chat API"
 expose = true
 
-[[ports]]
-localPort = 27017
-externalPort = 27017
-description = "MongoDB"
-expose = false
-
-[[ports]]
-localPort = 6379
-externalPort = 6379
-description = "Redis"
-expose = false
-
-# Deployment configuration
+# Deployment configuration for Replit
 [deployment]
 deploymentTarget = "autoscale"
 run = [
@@ -72,11 +54,5 @@ run = [
   "--project",
   "apiContact/apiContact.csproj",
   "--urls",
-  "http://0.0.0.0:5000",
-  "--configuration",
-  "Release"
+  "http://0.0.0.0:5000"
 ]
-
-# Build configuration
-[build]
-files = ["apiContact/appsettings.json", "apiContact/appsettings.Development.json"]
