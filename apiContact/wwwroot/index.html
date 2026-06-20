@@ -233,6 +233,73 @@ conn.on(<span class="str">"ReceiveMessage"</span>, msg =&gt; console.log(<span c
       </div>
     </div>
 
+    <!-- API PLAYGROUND -->
+    <div class="section-header reveal" style="margin-top:3.5rem">
+      <div class="hero-tag" style="margin:0 auto 1rem"><i data-lucide="terminal" class="icon-sm"></i> TRY IT LIVE</div>
+      <h2>API Playground</h2>
+      <p>Send real requests to the live API right here — no setup needed. Login once to unlock all authenticated endpoints.</p>
+    </div>
+
+    <div class="playground reveal">
+
+      <!-- Auth status bar -->
+      <div class="pg-auth-bar">
+        <div class="pg-auth-indicator">
+          <div class="status-dot standby" id="pg-auth-dot"></div>
+          <span id="pg-auth-label">Not authenticated — run Login first</span>
+        </div>
+        <button class="pg-token-clear" id="pg-logout" style="display:none">
+          <i data-lucide="log-out" class="icon-sm"></i> Clear Token
+        </button>
+      </div>
+
+      <div class="pg-layout">
+
+        <!-- LEFT: Request builder -->
+        <div class="pg-panel pg-left">
+          <div class="pg-tabs" id="pg-tabs">
+            <button class="pg-tab active" data-req="login">Login</button>
+            <button class="pg-tab" data-req="me">Me</button>
+            <button class="pg-tab" data-req="health">Health</button>
+            <button class="pg-tab" data-req="rooms">My Rooms</button>
+            <button class="pg-tab" data-req="users">Online Users</button>
+            <button class="pg-tab" data-req="audit">Audit Log</button>
+          </div>
+
+          <div class="pg-url-row">
+            <span class="method method-post" id="pg-method-badge">POST</span>
+            <code class="pg-url-code" id="pg-url">/api/auth/login</code>
+          </div>
+
+          <div id="pg-body-wrap">
+            <div class="pg-field-label">Request Body &nbsp;<kbd class="pg-kbd">Ctrl+Enter</kbd> to run</div>
+            <textarea class="pg-body" id="pg-body" spellcheck="false" autocomplete="off" rows="6"></textarea>
+          </div>
+
+          <div class="pg-run-row">
+            <button class="btn btn-primary btn-sm" id="pg-run">
+              <i data-lucide="play" class="icon-sm"></i> Run
+            </button>
+            <button class="pg-reset-btn" id="pg-reset" title="Reset body to default">
+              <i data-lucide="rotate-ccw" class="icon-sm"></i>
+            </button>
+            <span class="pg-hint" id="pg-hint">Demo: alice / password123</span>
+          </div>
+        </div>
+
+        <!-- RIGHT: Response viewer -->
+        <div class="pg-panel pg-right">
+          <div class="pg-res-header">
+            <span class="pg-field-label" style="padding:0;border:none">Response</span>
+            <div class="pg-res-meta" id="pg-res-meta"></div>
+            <button class="copy-btn pg-copy-btn" id="pg-copy-btn" style="visibility:hidden">Copy</button>
+          </div>
+          <pre class="pg-res-body" id="pg-res-body"><span class="pg-placeholder">Hit "Run" to see the live response here…</span></pre>
+        </div>
+
+      </div>
+    </div>
+
     <!-- WEBSOCKET EVENTS -->
     <div class="section-header reveal" style="margin-top:3.5rem">
       <h2>WebSocket Events</h2>
