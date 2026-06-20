@@ -1,14 +1,32 @@
-{
+﻿{
   "$schema": "https://json.schemastore.org/launchsettings.json",
   "profiles": {
     "http": {
       "commandName": "Project",
       "dotnetRunMessages": true,
-      "launchBrowser": true,
-      "launchUrl": "",
+      "launchBrowser": false,
+      "launchUrl": "swagger",
       "applicationUrl": "http://0.0.0.0:5000",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "JWT_KEY": "your_super_secret_key_minimum_32_characters_long_for_development",
+        "MongoDB__ConnectionString": "mongodb+srv://aslelhikaia_db_user:AkeTEkoHi4OGIQtP@chatdb.4t9clmn.mongodb.net/?appName=ChatDb",
+        "Redis__ConnectionString": "redis://:lc1_EMdjTMfr7jNvAkwoxDFQjVN-6MbbYBncPP9VSoHsAHcZD3sC2zDJrOU2ew_erR61XRNu8mlSHuVraNzJIsN_AuM671Ej7qXTDH99ItWPzvBngYICkmsq1Yvzju5MlnggpF_Mv_UWEQIFRtijRA==@aws-us-east-1.langcache.redis.io:6379",
+        "ASPNETCORE_URLS": "http://0.0.0.0:5000"
+      }
+    },
+    "Replit": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": false,
+      "launchUrl": "swagger",
+      "applicationUrl": "http://0.0.0.0:5000",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "JWT_KEY": "your_super_secret_key_minimum_32_characters_long_for_development",
+        "MongoDB__ConnectionString": "mongodb+srv://aslelhikaia_db_user:AkeTEkoHi4OGIQtP@chatdb.4t9clmn.mongodb.net/?appName=ChatDb",
+        "Redis__ConnectionString": "redis://:lc1_EMdjTMfr7jNvAkwoxDFQjVN-6MbbYBncPP9VSoHsAHcZD3sC2zDJrOU2ew_erR61XRNu8mlSHuVraNzJIsN_AuM671Ej7qXTDH99ItWPzvBngYICkmsq1Yvzju5MlnggpF_Mv_UWEQIFRtijRA==@aws-us-east-1.langcache.redis.io:6379",
+        "ASPNETCORE_URLS": "http://0.0.0.0:5000"
       }
     }
   }
