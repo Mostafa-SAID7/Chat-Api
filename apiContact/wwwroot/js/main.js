@@ -168,19 +168,21 @@ function initCopyBtns() {
 
 /* ── Scroll-reveal ───────────────────────────────────────── */
 function initReveal() {
-  const els = document.querySelectorAll('.card, .endpoint-card, .stat, .tech-chip, .ws-demo, .qs-step, .ws-event, .ws-flow-grid');
+  // Observe ALL .reveal elements (containers + children) so parent
+  // opacity:0 never hides content that should be visible.
+  const els = document.querySelectorAll('.reveal');
   if (!els.length) return;
 
   const io = new IntersectionObserver(entries => {
     entries.forEach(e => {
       if (e.isIntersecting) {
-        e.target.classList.add('reveal', 'visible');
+        e.target.classList.add('visible');
         io.unobserve(e.target);
       }
     });
-  }, { threshold: 0.08, rootMargin: '0px 0px -20px 0px' });
+  }, { threshold: 0.05, rootMargin: '0px 0px -20px 0px' });
 
-  els.forEach(el => { el.classList.add('reveal'); io.observe(el); });
+  els.forEach(el => io.observe(el));
 }
 
 /* ── API status badge ────────────────────────────────────── */

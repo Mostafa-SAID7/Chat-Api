@@ -217,7 +217,7 @@ nav {
 /* ── HERO ─────────────────────────────────────────────────── */
 .hero {
   max-width: 860px; margin: 0 auto;
-  padding: 5rem 1.5rem 3.5rem;
+  padding: 3rem 1.5rem 2rem;
   text-align: center;
 }
 .hero-tag {
@@ -303,7 +303,7 @@ nav {
 .stat-label { font-size: .72rem; color: var(--text3); text-transform: uppercase; letter-spacing: .07em; margin-top: .25rem; }
 
 /* ── SECTION ──────────────────────────────────────────────── */
-.section-wrap  { padding: 4rem 1.5rem; }
+.section-wrap  { padding: 2rem 1.5rem 3rem; }
 .section-inner { max-width: 1160px; margin: 0 auto; }
 .section-header { text-align: center; margin-bottom: 2.25rem; }
 .section-header h2 { font-size: 1.65rem; font-weight: 700; margin-bottom: .4rem; }
