@@ -69,4 +69,26 @@ namespace apiContact.Features.Users
         public Task<bool> Handle(DeleteUserCommand cmd, CancellationToken ct)
             => _uow.Users.DeleteAsync(cmd.Id);
     }
+
+    // ── BlockUser ─────────────────────────────────────────────
+    public record BlockUserCommand(string UserId, string TargetId) : IRequest;
+
+    public class BlockUserHandler : IRequestHandler<BlockUserCommand>
+    {
+        private readonly IUnitOfWork _uow;
+        public BlockUserHandler(IUnitOfWork uow) => _uow = uow;
+        public Task Handle(BlockUserCommand cmd, CancellationToken ct)
+            => _uow.Users.BlockUserAsync(cmd.UserId, cmd.TargetId);
+    }
+
+    // ── UnblockUser ───────────────────────────────────────────
+    public record UnblockUserCommand(string UserId, string TargetId) : IRequest;
+
+    public class UnblockUserHandler : IRequestHandler<UnblockUserCommand>
+    {
+        private readonly IUnitOfWork _uow;
+        public UnblockUserHandler(IUnitOfWork uow) => _uow = uow;
+        public Task Handle(UnblockUserCommand cmd, CancellationToken ct)
+            => _uow.Users.UnblockUserAsync(cmd.UserId, cmd.TargetId);
+    }
 }

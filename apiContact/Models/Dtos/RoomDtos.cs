@@ -49,4 +49,29 @@ namespace apiContact.Models.Dtos
         [Required(ErrorMessage = "UserId is required")]
         public string UserId { get; set; } = string.Empty;
     }
+
+    /// <summary>Create or retrieve an existing Direct-Message room with another user.</summary>
+    public class CreateDirectRoomDto
+    {
+        [Required(ErrorMessage = "TargetUserId is required")]
+        public string TargetUserId { get; set; } = string.Empty;
+    }
+
+    /// <summary>Options for generating a room invite link.</summary>
+    public class GenerateInviteDto
+    {
+        /// <summary>Hours until the invite code expires (1–168). Default 24 h.</summary>
+        [Range(1, 168, ErrorMessage = "ExpiryHours must be between 1 and 168")]
+        public int ExpiryHours { get; set; } = 24;
+    }
+
+    /// <summary>Read-only room statistics snapshot.</summary>
+    public class RoomStatsDto
+    {
+        public string    RoomId        { get; set; } = string.Empty;
+        public int       MemberCount   { get; set; }
+        public int       MessageCount  { get; set; }
+        public int       PinnedCount   { get; set; }
+        public DateTime? LastActivityAt { get; set; }
+    }
 }

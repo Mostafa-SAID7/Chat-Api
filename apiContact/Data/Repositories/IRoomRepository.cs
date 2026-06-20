@@ -16,5 +16,15 @@ namespace apiContact.Data.Repositories
         Task<List<string>>   GetAllCategoriesAsync();
         Task<List<string>>   GetAllTagsAsync();
         Task<List<string>>   GetMemberIdsAsync(string roomId);
+
+        // ── Direct rooms ──────────────────────────────────────────
+        Task<ChatRoom?>      GetDirectRoomAsync(string userId1, string userId2);
+
+        // ── Invite codes ──────────────────────────────────────────
+        Task<ChatRoom?>      GetByInviteCodeAsync(string code);
+        Task                 SetInviteCodeAsync(string roomId, string? code, DateTime? expiresAt);
+
+        // ── Statistics ────────────────────────────────────────────
+        Task<RoomStatsDto>   GetStatsAsync(string roomId);
     }
 }

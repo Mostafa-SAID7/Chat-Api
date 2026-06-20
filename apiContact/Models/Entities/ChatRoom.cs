@@ -38,5 +38,12 @@ namespace apiContact.Models.Entities
         // Denormalized preview — avoids an extra query for the rooms list
         public string?   LastMessagePreview { get; set; }
         public DateTime? LastMessageAt      { get; set; }
+
+        // Invite links — optional, time-limited shareable code
+        public string?   InviteCode      { get; set; }
+        public DateTime? InviteExpiresAt { get; set; }
+
+        // Optional member cap (null = unlimited)
+        public int? MaxMembers { get; set; }
     }
 }

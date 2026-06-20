@@ -95,5 +95,35 @@ namespace apiContact.Controllers
             if (!ok) return NotFound(ApiResponse<object>.Fail("User not found"));
             return Ok(ApiResponse<object>.Ok(new { id }, "User deleted"));
         }
+
+        // ── Blocking ──────────────────────────────────────────────
+
+        /// <summary>Block another user — their messages will be hidden and DMs rejected</summary>
+        [HttpPost("{id}/block")]
+        public async Task<IActionResult> BlockUser(string id)
+        {
+            if (id == CallerId) return BadRequest(ApiResponse<object>.Fail("Cannot block yourself"));
+            var target = await _mediator.Send(new GetUserByIdQuery(id));
+            if (target is null) return NotFound(ApiResponse<object>.Fail("User not found"));
+            await _mediator.Send(new BlockUserCommand(CallerId, id));
+            return Ok(ApiResponse<object>.Ok(new { blockedId = id }, "User blocked"));
+        }
+
+        /// <summary>Unblock a previously blocked user</summary>
+        [HttpDelete("{id}/block")]
+        public async Task<IActionResult> UnblockUser(string id)
+        {
+            await _mediator.Send(new UnblockUserCommand(CallerId, id));
+            return Ok(ApiResponse<object>.Ok(new { unblockedId = id }, "User unblocked"));
+        }
+
+        /// <summary>Get the list of users blocked by the current user</summary>
+        [HttpGet("blocked")]
+        public async Task<IActionResult> GetBlocked()
+        {
+            var list     = await _mediator.Send(new GetBlockedUsersQuery(CallerId));
+            var profiles = list.Select(UserMapper.ToPublicProfile);
+            return Ok(ApiResponse<object>.Ok(profiles, total: list.Count));
+        }
     }
 }

@@ -58,4 +58,15 @@ namespace apiContact.Features.Messages
         public Task<int> Handle(GetUnreadCountQuery q, CancellationToken ct)
             => _uow.Messages.GetUnreadCountAsync(q.RoomId, q.UserId);
     }
+
+    // ── GetPinnedMessages ─────────────────────────────────────
+    public record GetPinnedMessagesQuery(string RoomId) : IRequest<List<Message>>;
+
+    public class GetPinnedMessagesHandler : IRequestHandler<GetPinnedMessagesQuery, List<Message>>
+    {
+        private readonly IUnitOfWork _uow;
+        public GetPinnedMessagesHandler(IUnitOfWork uow) => _uow = uow;
+        public Task<List<Message>> Handle(GetPinnedMessagesQuery q, CancellationToken ct)
+            => _uow.Messages.GetPinnedAsync(q.RoomId);
+    }
 }

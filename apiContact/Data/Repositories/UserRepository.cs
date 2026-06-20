@@ -273,5 +273,53 @@ namespace apiContact.Data.Repositories
 
             return b.And(filters);
         }
+
+        // ── Blocking ──────────────────────────────────────────────
+
+        public async Task BlockUserAsync(string id, string targetId)
+        {
+            if (_db.IsInMemory)
+            {
+                if (!_db.Users.TryGetValue(id, out var user)) return;
+                if (!user.BlockedUserIds.Contains(targetId)) user.BlockedUserIds.Add(targetId);
+                user.UpdatedAt = DateTime.UtcNow;
+                return;
+            }
+            await _col!.UpdateOneAsync(u => u.Id == id,
+                Builders<ChatUser>.Update
+                    .AddToSet(u => u.BlockedUserIds, targetId)
+                    .Set(u => u.UpdatedAt, DateTime.UtcNow));
+        }
+
+        public async Task UnblockUserAsync(string id, string targetId)
+        {
+            if (_db.IsInMemory)
+            {
+                if (!_db.Users.TryGetValue(id, out var user)) return;
+                user.BlockedUserIds.Remove(targetId);
+                user.UpdatedAt = DateTime.UtcNow;
+                return;
+            }
+            await _col!.UpdateOneAsync(u => u.Id == id,
+                Builders<ChatUser>.Update
+                    .Pull(u => u.BlockedUserIds, targetId)
+                    .Set(u => u.UpdatedAt, DateTime.UtcNow));
+        }
+
+        public async Task<List<ChatUser>> GetBlockedAsync(string id)
+        {
+            if (_db.IsInMemory)
+            {
+                if (!_db.Users.TryGetValue(id, out var blocker)) return new();
+                return blocker.BlockedUserIds
+                    .Select(bid => _db.Users.GetValueOrDefault(bid))
+                    .Where(u => u is not null && !u.IsDeleted)
+                    .Cast<ChatUser>()
+                    .ToList();
+            }
+            var u = await _col!.Find(x => x.Id == id).FirstOrDefaultAsync();
+            if (u is null) return new();
+            return await _col!.Find(x => u.BlockedUserIds.Contains(x.Id) && !x.IsDeleted).ToListAsync();
+        }
     }
 }
