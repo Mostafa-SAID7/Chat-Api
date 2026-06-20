@@ -91,6 +91,23 @@ namespace apiContact.Data.Repositories
             return await _col!.Find(u => u.Email == email.ToLower()).FirstOrDefaultAsync();
         }
 
+        /// <summary>
+        /// Lookup by refresh token — O(1) indexed query instead of loading all users.
+        /// Fixes the DoS vulnerability where Refresh loaded the entire user table.
+        /// </summary>
+        public async Task<ChatUser?> GetByRefreshTokenAsync(string refreshToken)
+        {
+            if (_db.IsInMemory)
+                return _db.Users.Values.FirstOrDefault(
+                    u => u.RefreshToken == refreshToken &&
+                         u.RefreshTokenExpiry > DateTime.UtcNow);
+
+            return await _col!
+                .Find(u => u.RefreshToken == refreshToken &&
+                           u.RefreshTokenExpiry > DateTime.UtcNow)
+                .FirstOrDefaultAsync();
+        }
+
         public async Task<List<ChatUser>> GetOnlineUsersAsync()
         {
             if (_db.IsInMemory)

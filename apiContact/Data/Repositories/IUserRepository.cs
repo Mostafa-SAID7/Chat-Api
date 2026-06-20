@@ -8,6 +8,7 @@ namespace apiContact.Data.Repositories
     {
         Task<ChatUser?>      GetByUsernameAsync(string username);
         Task<ChatUser?>      GetByEmailAsync(string email);
+        Task<ChatUser?>      GetByRefreshTokenAsync(string refreshToken);
         Task<List<ChatUser>> GetOnlineUsersAsync();
         Task                 SetStatusAsync(string id, UserStatus status);
         Task                 SaveRefreshTokenAsync(string id, string? token, DateTime? expiry);

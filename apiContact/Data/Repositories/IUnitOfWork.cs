@@ -11,5 +11,6 @@ namespace apiContact.Data.Repositories
         IUserRepository    Users    { get; }
         IRoomRepository    Rooms    { get; }
         IMessageRepository Messages { get; }
+        IAuditRepository   Audit    { get; }
     }
 }

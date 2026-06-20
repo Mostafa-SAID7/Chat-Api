@@ -11,9 +11,10 @@ namespace apiContact.Data
         private readonly bool _useInMemory;
 
         // In-memory fallback stores
-        internal readonly Dictionary<string, ChatUser> Users    = new();
-        internal readonly Dictionary<string, ChatRoom> Rooms    = new();
-        internal readonly Dictionary<string, Message>  Messages = new();
+        internal readonly Dictionary<string, ChatUser>  Users     = new();
+        internal readonly Dictionary<string, ChatRoom>  Rooms     = new();
+        internal readonly Dictionary<string, Message>   Messages  = new();
+        internal readonly Dictionary<string, AuditLog>  AuditLogs = new();
 
         public ChatDbContext(IConfiguration config)
         {
