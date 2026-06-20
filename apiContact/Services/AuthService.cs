@@ -10,32 +10,42 @@ namespace apiContact.Services
     public class AuthService : IAuthService
     {
         private readonly IConfiguration _config;
+        private readonly string         _jwtKey;
 
-        public AuthService(IConfiguration config) => _config = config;
+        public AuthService(IConfiguration config)
+        {
+            _config = config;
+            // Prefer env var (production secret) over appsettings fallback
+            _jwtKey = Environment.GetEnvironmentVariable("JWT_KEY")
+                   ?? config["Jwt:Key"]
+                   ?? throw new InvalidOperationException(
+                          "JWT key is not configured. Set the JWT_KEY environment variable.");
+        }
 
         public string GenerateAccessToken(ChatUser user)
         {
-            var key = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
+            var key    = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtKey));
+            var creds  = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var claims = new[]
             {
-                new Claim(JwtRegisteredClaimNames.Sub,   user.Id),
-                new Claim(JwtRegisteredClaimNames.Email, user.Email),
+                new Claim(JwtRegisteredClaimNames.Sub,        user.Id),
+                new Claim(JwtRegisteredClaimNames.Email,      user.Email),
                 new Claim(JwtRegisteredClaimNames.UniqueName, user.Username),
-                new Claim("displayName", user.DisplayName),
-                new Claim(ClaimTypes.Role, user.Role),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+                new Claim("displayName",                      user.DisplayName),
+                new Claim(ClaimTypes.Role,                    user.Role),
+                new Claim(JwtRegisteredClaimNames.Jti,        Guid.NewGuid().ToString())
             };
 
-            var expiryMinutes = int.Parse(_config["Jwt:AccessTokenExpiryMinutes"] ?? "60");
+            var expiryMinutes = int.TryParse(
+                _config["Jwt:AccessTokenExpiryMinutes"], out var m) ? m : 60;
 
             var token = new JwtSecurityToken(
-                issuer:   _config["Jwt:Issuer"],
-                audience: _config["Jwt:Audience"],
-                claims:   claims,
-                expires:  DateTime.UtcNow.AddMinutes(expiryMinutes),
-                signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256)
+                issuer:             _config["Jwt:Issuer"],
+                audience:           _config["Jwt:Audience"],
+                claims:             claims,
+                expires:            DateTime.UtcNow.AddMinutes(expiryMinutes),
+                signingCredentials: creds
             );
 
             return new JwtSecurityTokenHandler().WriteToken(token);

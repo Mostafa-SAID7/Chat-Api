@@ -1,12 +1,16 @@
 using System.Reflection;
 using System.Text;
+using System.Threading.RateLimiting;
 using apiContact.Data;
 using apiContact.Data.Repositories;
 using apiContact.Hubs;
+using apiContact.Middleware;
 using apiContact.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -58,7 +62,11 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 // ── JWT Authentication ────────────────────────────────────────────────────────
-var jwtKey = builder.Configuration["Jwt:Key"]!;
+var jwtKey = Environment.GetEnvironmentVariable("JWT_KEY")
+          ?? builder.Configuration["Jwt:Key"]
+          ?? throw new InvalidOperationException(
+                 "JWT key is not configured. Set the JWT_KEY environment variable.");
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -74,7 +82,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ClockSkew                = TimeSpan.Zero
         };
 
-        // Allow SignalR to read token from query string
+        // Allow SignalR to read JWT from query string (WebSocket handshake cannot set headers)
         options.Events = new JwtBearerEvents
         {
             OnMessageReceived = ctx =>
@@ -93,10 +101,71 @@ builder.Services.AddAuthorization();
 // ── SignalR ───────────────────────────────────────────────────────────────────
 builder.Services.AddSignalR();
 
+// ── IMemoryCache (L1 cache — always available) ────────────────────────────────
+builder.Services.AddMemoryCache();
+
+// ── Redis (L2 cache — optional; skipped gracefully when not configured) ───────
+var redisConnStr = builder.Configuration["Redis:ConnectionString"]
+               ?? Environment.GetEnvironmentVariable("REDIS_CONNECTION_STRING");
+
+var redisAvailable = false;
+if (!string.IsNullOrWhiteSpace(redisConnStr))
+{
+    try
+    {
+        var redis = await ConnectionMultiplexer.ConnectAsync(redisConnStr);
+        builder.Services.AddSingleton<IConnectionMultiplexer>(redis);
+        redisAvailable = true;
+    }
+    catch (Exception ex)
+    {
+        var startupLog = LoggerFactory.Create(lb => lb.AddConsole()).CreateLogger("Startup");
+        startupLog.LogWarning(ex, "Redis connection failed — continuing with in-memory cache only");
+    }
+}
+
+// ── Cache service (wraps Redis + IMemoryCache with transparent fallback) ──────
+builder.Services.AddSingleton<ICacheService, CacheService>();
+
+// ── Rate Limiting ─────────────────────────────────────────────────────────────
+// Fixed-window limiter on auth and file endpoints to resist brute-force / abuse.
+builder.Services.AddRateLimiter(opt =>
+{
+    opt.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    // Auth endpoints: 10 requests / IP / minute
+    opt.AddFixedWindowLimiter("auth", limiterOpts =>
+    {
+        limiterOpts.Window            = TimeSpan.FromMinutes(1);
+        limiterOpts.PermitLimit       = 10;
+        limiterOpts.QueueLimit        = 0;
+        limiterOpts.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+    });
+
+    // File upload: 20 requests / IP / minute
+    opt.AddFixedWindowLimiter("files", limiterOpts =>
+    {
+        limiterOpts.Window            = TimeSpan.FromMinutes(1);
+        limiterOpts.PermitLimit       = 20;
+        limiterOpts.QueueLimit        = 0;
+        limiterOpts.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+    });
+
+    // Global API limiter: 120 requests / IP / minute for everything else
+    opt.AddFixedWindowLimiter("global", limiterOpts =>
+    {
+        limiterOpts.Window            = TimeSpan.FromMinutes(1);
+        limiterOpts.PermitLimit       = 120;
+        limiterOpts.QueueLimit        = 0;
+        limiterOpts.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+    });
+});
+
 // ── Repository layer (Unit of Work + Repositories) ───────────────────────────
 builder.Services.AddScoped<IUserRepository,    UserRepository>();
 builder.Services.AddScoped<IRoomRepository,    RoomRepository>();
 builder.Services.AddScoped<IMessageRepository, MessageRepository>();
+builder.Services.AddScoped<IAuditRepository,   AuditRepository>();
 builder.Services.AddScoped<IUnitOfWork,        UnitOfWork>();
 
 // ── Application services ──────────────────────────────────────────────────────
@@ -106,26 +175,33 @@ builder.Services.AddScoped<IUserService,    UserService>();
 builder.Services.AddScoped<IRoomService,    RoomService>();
 builder.Services.AddScoped<IMessageService, MessageService>();
 builder.Services.AddScoped<IFileService,    FileService>();
+builder.Services.AddScoped<IAuditService,   AuditService>();
 
 // ── CORS ──────────────────────────────────────────────────────────────────────
 var isDev = builder.Environment.IsDevelopment();
 
+var replitDev    = Environment.GetEnvironmentVariable("REPLIT_DEV_DOMAIN") ?? "";
+var replitDomain = Environment.GetEnvironmentVariable("REPLIT_DOMAINS")    ?? "";
+
 builder.Services.AddCors(options =>
 {
-    // Development — allow any origin (useful for localhost:3000, live-reload, etc.)
     options.AddPolicy("DevelopmentPolicy", policy =>
         policy.AllowAnyOrigin()
               .AllowAnyHeader()
               .AllowAnyMethod());
 
-    // Production — allow any origin but require credentials headers to be explicit
-    // To restrict, replace AllowAnyOrigin with WithOrigins("https://your-app.replit.app")
+    var allowedOrigins = new List<string>
+    {
+        "https://*.replit.app",
+        "https://*.replit.dev",
+        "https://*.repl.co"
+    };
+    if (!string.IsNullOrWhiteSpace(replitDev))    allowedOrigins.Add($"https://{replitDev}");
+    if (!string.IsNullOrWhiteSpace(replitDomain)) allowedOrigins.Add($"https://{replitDomain}");
+
     options.AddPolicy("ProductionPolicy", policy =>
         policy.SetIsOriginAllowedToAllowWildcardSubdomains()
-              .WithOrigins(
-                  "https://*.replit.app",
-                  "https://*.replit.dev",
-                  "https://*.repl.co")
+              .WithOrigins(allowedOrigins.ToArray())
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials());
@@ -137,6 +213,16 @@ builder.WebHost.UseUrls("http://0.0.0.0:5000");
 var app = builder.Build();
 
 // ── Middleware pipeline ───────────────────────────────────────────────────────
+// 1. Global exception handler — outermost so it catches everything
+app.UseGlobalExceptionHandler();
+
+// 2. Security headers — applied to every response including static files
+app.UseSecurityHeaders();
+
+// 3. Rate limiting
+app.UseRateLimiter();
+
+// 4. Swagger UI
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
@@ -147,16 +233,22 @@ app.UseSwaggerUI(c =>
     c.InjectJavascript("/js/swagger-nav.js");
 });
 
+// 5. CORS
 app.UseCors(isDev ? "DevelopmentPolicy" : "ProductionPolicy");
+
+// 6. Static files
 app.UseDefaultFiles();
 app.UseStaticFiles();
 
+// 7. Auth
 app.UseAuthentication();
 app.UseAuthorization();
 
+// 8. Endpoints
 app.MapControllers();
 app.MapHub<ChatHub>("/hubs/chat");
 
+// ── Health check ──────────────────────────────────────────────────────────────
 app.MapGet("/health", () => new
 {
     status    = "healthy",
@@ -164,12 +256,14 @@ app.MapGet("/health", () => new
     version   = "1.0.0",
     services  = new
     {
-        auth       = "JWT Bearer",
-        websocket  = "SignalR",
-        database   = "MongoDB (in-memory fallback)",
-        cache      = "Redis (optional)",
-        storage    = "Blob (local)",
-        pattern    = "Repository + Unit of Work + MediatR CQRS"
+        auth      = "JWT Bearer (HS256, key from JWT_KEY env var)",
+        websocket = "SignalR (authenticated)",
+        database  = "MongoDB (in-memory fallback)",
+        cache     = redisAvailable ? "Redis (connected) + IMemoryCache L1" : "IMemoryCache (Redis not configured)",
+        storage   = "Blob (local wwwroot/uploads)",
+        audit     = "AuditService → AuditRepository (persistent)",
+        rateLimit = "Fixed-window: auth=10/min, files=20/min, global=120/min",
+        pattern   = "Repository + Unit of Work + MediatR CQRS"
     }
 });
 

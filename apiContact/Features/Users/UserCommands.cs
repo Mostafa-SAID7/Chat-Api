@@ -1,8 +1,10 @@
 using apiContact.Data.Repositories;
+using apiContact.Mappings;
 using apiContact.Models.Dtos;
 using apiContact.Models.Entities;
+using apiContact.Models.Enums;
 using MediatR;
-using MongoDB.Bson;
+using BC = BCrypt.Net.BCrypt;
 
 namespace apiContact.Features.Users
 {
@@ -16,18 +18,8 @@ namespace apiContact.Features.Users
 
         public async Task<ChatUser> Handle(CreateUserCommand cmd, CancellationToken ct)
         {
-            var user = new ChatUser
-            {
-                Id           = ObjectId.GenerateNewId().ToString(),
-                Username     = cmd.Dto.Username.Trim().ToLower(),
-                DisplayName  = string.IsNullOrWhiteSpace(cmd.Dto.DisplayName)
-                               ? cmd.Dto.Username : cmd.Dto.DisplayName,
-                Email        = cmd.Dto.Email.Trim().ToLower(),
-                AvatarUrl    = cmd.Dto.AvatarUrl,
-                Role         = cmd.Dto.Role,
-                PasswordHash = cmd.Dto.Password,  // caller passes pre-hashed value
-                CreatedAt    = DateTime.UtcNow
-            };
+            var hash = BC.HashPassword(cmd.Dto.Password);
+            var user = UserMapper.FromCreateDto(cmd.Dto, hash);
             return await _uow.Users.AddAsync(user);
         }
     }
@@ -44,19 +36,14 @@ namespace apiContact.Features.Users
         {
             var user = await _uow.Users.GetByIdAsync(cmd.Id);
             if (user is null) return null;
-            if (cmd.Dto.DisplayName is not null) user.DisplayName = cmd.Dto.DisplayName;
-            if (cmd.Dto.AvatarUrl   is not null) user.AvatarUrl   = cmd.Dto.AvatarUrl;
-            if (cmd.Dto.IsOnline.HasValue)
-            {
-                user.IsOnline = cmd.Dto.IsOnline.Value;
-                user.LastSeen = DateTime.UtcNow;
-            }
+            UserMapper.ApplyUpdate(user, cmd.Dto);
             return await _uow.Users.UpdateAsync(user);
         }
     }
 
     // ── SetUserStatus ─────────────────────────────────────────
-    public record SetUserStatusCommand(string Id, bool IsOnline) : IRequest<bool>;
+    /// <summary>Set full presence status (Online, Away, Busy, Offline)</summary>
+    public record SetUserStatusCommand(string Id, UserStatus Status) : IRequest<bool>;
 
     public class SetUserStatusHandler : IRequestHandler<SetUserStatusCommand, bool>
     {
@@ -67,7 +54,7 @@ namespace apiContact.Features.Users
         {
             var user = await _uow.Users.GetByIdAsync(cmd.Id);
             if (user is null) return false;
-            await _uow.Users.SetStatusAsync(cmd.Id, cmd.IsOnline);
+            await _uow.Users.SetStatusAsync(cmd.Id, cmd.Status);
             return true;
         }
     }
