@@ -1,10 +1,12 @@
 using MongoDB.Driver;
 using MongoDB.Bson;
+using apiContact.Data.Seeds;
+using apiContact.Models.Entities;
 
 namespace apiContact.Services;
 
 /// <summary>
-/// Service for seeding initial data into the database
+/// Service for seeding initial data into the database using proper seed classes
 /// </summary>
 public interface IDatabaseSeedService
 {
@@ -25,7 +27,7 @@ public class DatabaseSeedService : IDatabaseSeedService
     }
 
     /// <summary>
-    /// Seed initial data if database is empty
+    /// Seed initial data from seed classes if database is empty
     /// </summary>
     public async Task SeedAsync()
     {
@@ -33,8 +35,8 @@ public class DatabaseSeedService : IDatabaseSeedService
         {
             _logger.LogInformation("🌱 Checking if database needs seeding...");
 
-            var usersCollection = _database.GetCollection<BsonDocument>("users");
-            var userCount = await usersCollection.CountDocumentsAsync(Builders<BsonDocument>.Filter.Empty);
+            var usersCollection = _database.GetCollection<ChatUser>("users");
+            var userCount = await usersCollection.CountDocumentsAsync(Builders<ChatUser>.Filter.Empty);
 
             if (userCount > 0)
             {
@@ -42,92 +44,30 @@ public class DatabaseSeedService : IDatabaseSeedService
                 return;
             }
 
-            _logger.LogInformation("📝 Seeding initial data...");
+            _logger.LogInformation("📝 Seeding initial data from seed classes...");
 
-            // Create test users
-            var testUsers = new List<BsonDocument>
-            {
-                new BsonDocument
-                {
-                    { "_id", ObjectId.GenerateNewId() },
-                    { "email", "admin@chatapi.local" },
-                    { "passwordHash", "$2b$12$ER1HwL2Wp1u3PiCxzm1uiO3zPO1U5CmkKz1bnY1ykR8XzXzIm6HyC" }, // password: Admin123!
-                    { "firstName", "Admin" },
-                    { "lastName", "User" },
-                    { "avatar", "https://api.dicebear.com/7.x/avataaars/svg?seed=admin" },
-                    { "isOnline", false },
-                    { "createdAt", DateTime.UtcNow },
-                    { "updatedAt", DateTime.UtcNow },
-                    { "isDeleted", false }
-                },
-                new BsonDocument
-                {
-                    { "_id", ObjectId.GenerateNewId() },
-                    { "email", "demo@chatapi.local" },
-                    { "passwordHash", "$2b$12$ER1HwL2Wp1u3PiCxzm1uiO3zPO1U5CmkKz1bnY1ykR8XzXzIm6HyC" }, // password: Demo123!
-                    { "firstName", "Demo" },
-                    { "lastName", "User" },
-                    { "avatar", "https://api.dicebear.com/7.x/avataaars/svg?seed=demo" },
-                    { "isOnline", false },
-                    { "createdAt", DateTime.UtcNow },
-                    { "updatedAt", DateTime.UtcNow },
-                    { "isDeleted", false }
-                },
-                new BsonDocument
-                {
-                    { "_id", ObjectId.GenerateNewId() },
-                    { "email", "test@chatapi.local" },
-                    { "passwordHash", "$2b$12$ER1HwL2Wp1u3PiCxzm1uiO3zPO1U5CmkKz1bnY1ykR8XzXzIm6HyC" }, // password: Test123!
-                    { "firstName", "Test" },
-                    { "lastName", "User" },
-                    { "avatar", "https://api.dicebear.com/7.x/avataaars/svg?seed=test" },
-                    { "isOnline", false },
-                    { "createdAt", DateTime.UtcNow },
-                    { "updatedAt", DateTime.UtcNow },
-                    { "isDeleted", false }
-                }
-            };
+            // 1. Generate and seed Users
+            var users = UserSeed.Generate();
+            await usersCollection.InsertManyAsync(users);
+            _logger.LogInformation("  ✅ Created {Count} users", users.Count);
 
-            await usersCollection.InsertManyAsync(testUsers);
-            _logger.LogInformation("✅ Created {Count} test users", testUsers.Count);
+            // 2. Generate and seed Rooms (depends on users)
+            var roomsCollection = _database.GetCollection<ChatRoom>("rooms");
+            var rooms = RoomSeed.Generate(users);
+            await roomsCollection.InsertManyAsync(rooms);
+            _logger.LogInformation("  ✅ Created {Count} rooms", rooms.Count);
 
-            // Create sample messages
-            if (testUsers.Count >= 2)
-            {
-                var messagesCollection = _database.GetCollection<BsonDocument>("messages");
-                var sampleMessages = new List<BsonDocument>
-                {
-                    new BsonDocument
-                    {
-                        { "_id", ObjectId.GenerateNewId() },
-                        { "senderId", testUsers[0]["_id"] },
-                        { "receiverId", testUsers[1]["_id"] },
-                        { "text", "Welcome to Chat API! This is a test message." },
-                        { "attachments", new BsonArray() },
-                        { "isRead", false },
-                        { "isDeleted", false },
-                        { "createdAt", DateTime.UtcNow },
-                        { "updatedAt", DateTime.UtcNow }
-                    },
-                    new BsonDocument
-                    {
-                        { "_id", ObjectId.GenerateNewId() },
-                        { "senderId", testUsers[1]["_id"] },
-                        { "receiverId", testUsers[0]["_id"] },
-                        { "text", "Hello! This is a reply message." },
-                        { "attachments", new BsonArray() },
-                        { "isRead", false },
-                        { "isDeleted", false },
-                        { "createdAt", DateTime.UtcNow.AddSeconds(10) },
-                        { "updatedAt", DateTime.UtcNow.AddSeconds(10) }
-                    }
-                };
-
-                await messagesCollection.InsertManyAsync(sampleMessages);
-                _logger.LogInformation("✅ Created {Count} sample messages", sampleMessages.Count);
-            }
+            // 3. Generate and seed Messages (depends on users and rooms)
+            var messagesCollection = _database.GetCollection<Message>("messages");
+            var messages = MessageSeed.Generate(users, rooms);
+            await messagesCollection.InsertManyAsync(messages);
+            _logger.LogInformation("  ✅ Created {Count} messages", messages.Count);
 
             _logger.LogInformation("✅ Database seeding completed successfully");
+            _logger.LogInformation("📊 Seeded Data Summary:");
+            _logger.LogInformation("   • Users: alice (Admin), bob (User), carla (User)");
+            _logger.LogInformation("   • Rooms: General, Engineering, Direct Message");
+            _logger.LogInformation("   • Messages: Welcome message, engineering discussion, DM");
         }
         catch (Exception ex)
         {
