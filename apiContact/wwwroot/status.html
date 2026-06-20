@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>API Status · Chat API</title>
-  <link rel="stylesheet" href="/css/main.css" />
+  <link rel="stylesheet" href="/css/style.css" />
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <style>
     /* ── Status-page-specific tokens ─────────────────────────── */
@@ -204,38 +204,63 @@
       transition: height .3s, background .3s;
     }
 
-    /* CSS variable fallbacks for colour tokens */
+    /* CSS variable fallbacks — alias style.css tokens + status-specific colours */
     :root {
-      --green:  #22c55e;
-      --yellow: #eab308;
-      --red:    #ef4444;
+      --green:        #22c55e;
+      --yellow:       #eab308;
+      --red:          #ef4444;
+      --surface:      var(--bg2, #161b22);
+      --surface-hover:var(--bg3, #21262d);
+      --text-muted:   var(--text2, #8b949e);
+      --font-mono:    var(--mono, monospace);
+      --accent-subtle:rgba(249,115,22,.3);
     }
     [data-theme="light"] {
       --green:  #16a34a;
       --yellow: #ca8a04;
       --red:    #dc2626;
     }
+
+    /* Container override for status page */
+    .container { max-width: 960px; margin: 0 auto; padding: 0 1.5rem 3rem; }
   </style>
 </head>
 <body>
 
 <!-- ── Navigation ─────────────────────────────────────── -->
 <nav>
-  <a class="nav-logo" href="/"><div class="dot"></div>Chat API</a>
+  <a class="nav-logo" href="/"><div class="dot"></div>Chat<span style="color:var(--accent)">API</span></a>
   <div class="nav-links">
     <a href="/">Home</a>
+    <a href="/quickstart.html">Quick Start</a>
+    <a href="/playground.html">Playground</a>
+    <a href="/api.html">API</a>
     <a href="/docs.html">Docs</a>
-    <a href="/status.html" class="active">Status</a>
+    <a href="/status.html">Status</a>
     <a href="/swagger">Swagger <span class="nav-badge">UI</span></a>
-    <a href="/health">Health</a>
   </div>
   <div class="nav-actions">
     <button class="theme-toggle" id="theme-toggle" title="Toggle theme" aria-label="Toggle theme">
       <span class="icon-sun"><i data-lucide="sun" class="icon-md"></i></span>
       <span class="icon-moon"><i data-lucide="moon" class="icon-md"></i></span>
     </button>
+    <button class="hamburger" id="hamburger" aria-label="Menu" aria-expanded="false">
+      <span class="icon-open"><i data-lucide="menu" class="icon-md"></i></span>
+      <span class="icon-close"><i data-lucide="x" class="icon-md"></i></span>
+    </button>
   </div>
 </nav>
+
+<!-- MOBILE MENU -->
+<div class="mobile-menu" id="mobile-menu">
+  <a href="/"><i data-lucide="home" class="icon-md"></i> Home</a>
+  <a href="/quickstart.html"><i data-lucide="rocket" class="icon-md"></i> Quick Start</a>
+  <a href="/playground.html"><i data-lucide="terminal" class="icon-md"></i> Playground</a>
+  <a href="/api.html"><i data-lucide="layers" class="icon-md"></i> API</a>
+  <a href="/docs.html"><i data-lucide="book-open" class="icon-md"></i> Docs</a>
+  <a href="/status.html"><i data-lucide="activity" class="icon-md"></i> Status</a>
+  <a href="/swagger"><i data-lucide="zap" class="icon-md"></i> Swagger UI</a>
+</div>
 
 <!-- ── Hero ───────────────────────────────────────────── -->
 <div class="status-hero">
@@ -322,11 +347,14 @@
 </div><!-- /container -->
 
 <footer>
-  <p>
+  <p>Chat API v1 &nbsp;·&nbsp; .NET 9 &nbsp;·&nbsp;
     <a href="/">Home</a> &nbsp;·&nbsp;
+    <a href="/quickstart.html">Quick Start</a> &nbsp;·&nbsp;
+    <a href="/playground.html">Playground</a> &nbsp;·&nbsp;
+    <a href="/api.html">API</a> &nbsp;·&nbsp;
     <a href="/docs.html">Docs</a> &nbsp;·&nbsp;
-    <a href="/swagger">Swagger</a> &nbsp;·&nbsp;
-    <a href="/health">Health JSON</a>
+    <a href="/status.html">Status</a> &nbsp;·&nbsp;
+    <a href="/swagger">Swagger UI</a>
   </p>
 </footer>
 

@@ -264,8 +264,10 @@ function initIcons() {
 
 /* ── Dynamic base URL ────────────────────────────────────── */
 function initBaseUrl() {
-  const el = document.getElementById('base-url');
-  if (el) el.textContent = window.location.origin;
+  const origin = window.location.origin;
+  document.querySelectorAll('[id^="base-url"]').forEach(el => {
+    el.textContent = origin;
+  });
 }
 
 /* ── Error boundary: catch unhandled JS errors ───────────── */
@@ -312,12 +314,15 @@ function initErrorBoundary() {
 /* ── API Playground ──────────────────────────────────────── */
 function initPlayground() {
   const PG_REQS = {
-    login:  { method:'POST', url:'/api/auth/login',         auth:false, body:{usernameOrEmail:'alice',password:'password123'}, hint:'Demo: alice / password123' },
-    me:     { method:'GET',  url:'/api/auth/me',            auth:true,  body:null, hint:'Returns your authenticated profile' },
-    health: { method:'GET',  url:'/health',                 auth:false, body:null, hint:'Public health check — no auth required' },
-    rooms:  { method:'GET',  url:'/api/rooms/mine',         auth:true,  body:null, hint:'Your joined rooms (auth required)' },
-    users:  { method:'GET',  url:'/api/users/online',       auth:true,  body:null, hint:'Currently online users (auth required)' },
-    audit:  { method:'GET',  url:'/api/audit/recent?limit=5', auth:true, body:null, hint:'Recent audit events — admin only' },
+    login:      { method:'POST', url:'/api/auth/login',              auth:false, body:{usernameOrEmail:'alice',password:'password123'}, hint:'Demo: alice / password123' },
+    register:   { method:'POST', url:'/api/auth/register',           auth:false, body:{username:'newuser',email:'new@example.com',password:'Pass123!',displayName:'New User'}, hint:'Create a new account' },
+    me:         { method:'GET',  url:'/api/auth/me',                 auth:true,  body:null, hint:'Returns your authenticated profile' },
+    health:     { method:'GET',  url:'/health',                      auth:false, body:null, hint:'Public health check — no auth required' },
+    rooms:      { method:'GET',  url:'/api/rooms/mine',              auth:true,  body:null, hint:'Your joined rooms (auth required)' },
+    createRoom: { method:'POST', url:'/api/rooms',                   auth:true,  body:{name:'My Room',type:'Group',description:'A test room'}, hint:'Create a new group room' },
+    users:      { method:'GET',  url:'/api/users/online',            auth:true,  body:null, hint:'Currently online users (auth required)' },
+    sendMsg:    { method:'POST', url:'/api/messages',                auth:true,  body:{roomId:'<replace-with-room-id>',content:'Hello from Playground!'}, hint:'Replace roomId with a real room GUID from My Rooms' },
+    audit:      { method:'GET',  url:'/api/audit/recent?limit=5',    auth:true,  body:null, hint:'Recent audit events — admin only' },
   };
 
   let pgToken = null, pgUser = null, current = 'login';

@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>API Overview · Chat API</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Nunito:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/style.css" />
+  <script>
+    (function(){
+      var t=localStorage.getItem('chatapi-theme')||
+        (window.matchMedia('(prefers-color-scheme:light)').matches?'light':'dark');
+      document.documentElement.setAttribute('data-theme',t);
+    })();
+  </script>
+</head>
+<body>
+
+<!-- PAGE LOAD SHIMMER SKELETON -->
+<div id="page-loader" aria-hidden="true">
+  <div class="sk-nav">
+    <div class="sk sk-logo-pill"></div>
+    <div class="sk-nav-links">
+      <div class="sk sk-navlink"></div>
+      <div class="sk sk-navlink"></div>
+      <div class="sk sk-navlink"></div>
+      <div class="sk sk-navlink"></div>
+    </div>
+    <div class="sk sk-circle"></div>
+  </div>
+  <div class="sk-hero">
+    <div class="sk sk-badge-pill"></div>
+    <div class="sk sk-h1a"></div>
+    <div class="sk sk-h1b"></div>
+    <div class="sk sk-sub1"></div>
+    <div class="sk sk-sub2"></div>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="/"><div class="dot"></div>Chat<span style="color:var(--accent)">API</span></a>
+  <div class="nav-links">
+    <a href="/">Home</a>
+    <a href="/quickstart.html">Quick Start</a>
+    <a href="/playground.html">Playground</a>
+    <a href="/api.html">API</a>
+    <a href="/docs.html">Docs</a>
+    <a href="/status.html">Status</a>
+    <a href="/swagger">Swagger <span class="nav-badge">UI</span></a>
+  </div>
+  <div class="nav-actions">
+    <button class="theme-toggle" id="theme-toggle" title="Toggle theme" aria-label="Toggle theme">
+      <span class="icon-sun"><i data-lucide="sun" class="icon-md"></i></span>
+      <span class="icon-moon"><i data-lucide="moon" class="icon-md"></i></span>
+    </button>
+    <button class="hamburger" id="hamburger" aria-label="Menu" aria-expanded="false">
+      <span class="icon-open"><i data-lucide="menu" class="icon-md"></i></span>
+      <span class="icon-close"><i data-lucide="x" class="icon-md"></i></span>
+    </button>
+  </div>
+</nav>
+
+<!-- MOBILE MENU -->
+<div class="mobile-menu" id="mobile-menu">
+  <a href="/"><i data-lucide="home" class="icon-md"></i> Home</a>
+  <a href="/quickstart.html"><i data-lucide="rocket" class="icon-md"></i> Quick Start</a>
+  <a href="/playground.html"><i data-lucide="terminal" class="icon-md"></i> Playground</a>
+  <a href="/api.html"><i data-lucide="layers" class="icon-md"></i> API</a>
+  <a href="/docs.html"><i data-lucide="book-open" class="icon-md"></i> Docs</a>
+  <a href="/status.html"><i data-lucide="activity" class="icon-md"></i> Status</a>
+  <a href="/swagger"><i data-lucide="zap" class="icon-md"></i> Swagger UI</a>
+</div>
+
+<!-- PAGE HERO -->
+<div class="page-hero">
+  <div class="page-hero-inner">
+    <div class="hero-tag"><i data-lucide="layers" class="icon-sm"></i> ENDPOINTS</div>
+    <h1>API Overview</h1>
+    <p>All routes prefixed with <code>/api</code> · WebSocket hub at <code>/hubs/chat</code> · Base URL: <code id="base-url">…</code></p>
+    <div class="page-hero-actions">
+      <a href="/playground.html" class="btn btn-primary">
+        <i data-lucide="terminal" class="icon-sm"></i> Try in Playground
+      </a>
+      <a href="/docs.html" class="btn btn-outline">
+        <i data-lucide="book-open" class="icon-sm"></i> Detailed Docs
+      </a>
+      <a href="/swagger" class="btn btn-outline">
+        <i data-lucide="zap" class="icon-sm"></i> Swagger UI
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="section-wrap">
+  <div class="section-inner">
+
+    <!-- AUTH GROUP -->
+    <div class="section-header reveal">
+      <h2>Route Groups</h2>
+      <p>40+ endpoints across 9 groups — click any card in the <a href="/playground.html">Playground</a> to try it live or see <a href="/docs.html">Docs</a> for full schemas</p>
+    </div>
+
+    <div class="grid-2 reveal">
+
+      <!-- Auth -->
+      <div class="endpoint-group">
+        <div class="endpoint-group-title"><i data-lucide="key-round" class="icon-sm"></i> Auth</div>
+        <div class="endpoint-card">
+          <div class="endpoint-header"><span class="method method-post">POST</span><span class="endpoint-path">/api/auth/register</span></div>
+          <div class="endpoint-body"><p>Register a new account. Returns JWT + refresh token pair.</p></div>
+        </div>
+        <div class="endpoint-card" style="margin-top:.5rem">
+          <div class="endpoint-header"><span class="method method-post">POST</span><span class="endpoint-path">/api/auth/login</span></div>
+          <div class="endpoint-body"><p>Login and receive access + refresh token. Field: <code>usernameOrEmail</code>.</p></div>
+        </div>
+        <div class="endpoint-card" style="margin-top:.5rem">
+          <div class="endpoint-header"><span class="method method-post">POST</span><span class="endpoint-path">/api/auth/refresh</span></div>
+          <div class="endpoint-body"><p>Silently renew access token via refresh token rotation.</p></div>
+        </div>
+        <div class="endpoint-card" style="margin-top:.5rem">
+          <div class="endpoint-header"><span class="method method-get">GET</span><span class="endpoint-path">/api/auth/me</span></div>
+          <div class="endpoint-body"><p>Return authenticated caller's full profile.</p></div>
+        </div>
+      </div>
+
+      <!-- Users -->
+      <div class="endpoint-group">
+        <div class="endpoint-group-title"><i data-lucide="users" class="icon-sm"></i> Users</div>
+        <div class="endpoint-card">
+          <div class="endpoint-header"><span class="method method-get">GET</span><span class="endpoint-path">/api/users</span></div>
+          <div class="endpoint-body"><p>List all users sorted by display name.</p></div>
+        </div>
+        <div class="endpoint-card" style="margin-top:.5rem">
+          <div class="endpoint-header"><span class="method method-get">GET</span><span class="endpoint-path">/api/users/online</span></div>
+          <div class="endpoint-body"><p>Currently online users only.</p></div>
+        </div>
+        <div class="endpoint-card" style="margin-top:.5rem">
+          <div class="endpoint-header"><span class="method method-patch">PATCH</span><span class="endpoint-path">/api/users/{id}</span></div>
+          <div class="endpoint-body"><p>Partially update display name, bio, or avatar URL.</p></div>
+        </div>
+        <div class="endpoint-card" style="margin-top:.5rem">
+          <div class="endpoint-header"><span class="method method-post">POST</span><span class="endpoint-path">/api/users/{id}/status</span></div>
+          <div class="endpoint-body"><p>Set online / away / offline — broadcasts via WebSocket.</p></div>
+        </div>
+        <div class="endpoint-card" style="margin-top:.5rem">
+          <div class="endpoint-header"><span class="method method-post">POST</span><span class="endpoint-path">/api/users/{id}/block</span></div>
+          <div class="endpoint-body"><p>Block a user — they can no longer send you DMs.</p></div>
+        </div>
+        <div class="endpoint-card" style="margin-top:.5rem">
+          <div class="endpoint-header"><span class="method method-delete">DELETE</span><span class="endpoint-path">/api/users/{id}/block</span></div>
+          <div class="endpoint-body"><p>Unblock a previously blocked user.</p></div>
+        </div>
+        <div class="endpoint-card" style="margin-top:.5rem">
+          <div class="endpoint-header"><span class="method method-get">GET</span><span class="endpoint-path">/api/users/blocked</span></div>
+          <div class="endpoint-body"><p>List all users you have blocked.</p></div>
+        </div>
+      </div>
+
+      <!-- Rooms -->
+      <div class="endpoint-group">
+        <div class="endpoint-group-title"><i data-lucide="message-square" class="icon-sm"></i> Rooms</div>
+        <div class="endpoint-card">
+          <div class="endpoint-header"><span class="method method-get">GET</span><span class="endpoint-path">/api/rooms</span></div>
+          <div class="endpoint-body"><p>All rooms sorted by latest activity.</p></div>
+        </div>
+        <div class="endpoint-card" style="margin-top:.5rem">
+          <div class="endpoint-header"><span class="method method-get">GET</span><span class="endpoint-path">/api/rooms/mine</span></div>
+          <div class="endpoint-body"><p>Rooms the authenticated user has joined.</p></div>
+        </div>
+        <div class="endpoint-card" style="margin-top:.5rem">
+          <div class="endpoint-header"><span class="method method-post">POST</span><span class="endpoint-path">/api/rooms</span></div>
+          <div class="endpoint-body"><p>Create a Group or Channel room with auto-slug generation.</p></div>
+        </div>
+        <div class="endpoint-card" style="margin-top:.5rem">
+          <div class="endpoint-header"><span class="method method-post">POST</span><span class="endpoint-path">/api/rooms/dm</span></div>
+          <div class="endpoint-body"><p>Create or fetch an existing Direct Message room with another user.</p></div>
+        </div>
+        <div class="endpoint-card" style="margin-top:.5rem">
+          <div class="endpoint-header"><span class="method method-post">POST</span><span class="endpoint-path">/api/rooms/{id}/invite</span></div>
+          <div class="endpoint-body"><p>Generate a shareable invite code with optional expiry.</p></div>
+        </div>
+        <div class="endpoint-card" style="margin-top:.5rem">
+          <div class="endpoint-header"><span class="method method-post">POST</span><span class="endpoint-path">/api/rooms/join</span></div>
+          <div class="endpoint-body"><p>Join a room via invite code.</p></div>
+        </div>
+        <div class="endpoint-card" style="margin-top:.5rem">
+          <div class="endpoint-header"><span class="method method-get">GET</span><span class="endpoint-path">/api/rooms/{id}/stats</span></div>
+          <div class="endpoint-body"><p>Room stats: member count, message count, active users.</p></div>
+        </div>
+        <div class="endpoint-card" style="margin-top:.5rem">
+          <div class="endpoint-header"><span class="method method-delete">DELETE</span><span class="endpoint-path">/api/rooms/{id}/members/{userId}</span></div>
+          <div class="endpoint-body"><p>Remove a member from a room (owner / admin only).</p></div>
+        </div>
+      </div>
+
+      <!-- Messages -->
+      <div class="endpoint-group">
+        <div class="endpoint-group-title"><i data-lucide="mail" class="icon-sm"></i> Messages</div>
+        <div class="endpoint-card">
+          <div class="endpoint-header"><span class="method method-get">GET</span><span class="endpoint-path">/api/messages/room/{roomId}</span></div>
+          <div class="endpoint-body"><p>Paginated message history — oldest to newest.</p></div>
+        </div>
+        <div class="endpoint-card" style="margin-top:.5rem">
+          <div class="endpoint-header"><span class="method method-post">POST</span><span class="endpoint-path">/api/messages</span></div>
+          <div class="endpoint-body"><p>Send a message; auto-broadcasts via SignalR to all room members.</p></div>
+        </div>
+        <div class="endpoint-card" style="margin-top:.5rem">
+          <div class="endpoint-header"><span class="method method-patch">PATCH</span><span class="endpoint-path">/api/messages/{id}</span></div>
+          <div class="endpoint-body"><p>Edit a message — broadcasts <code>MessageEdited</code> event.</p></div>
+        </div>
+        <div class="endpoint-card" style="margin-top:.5rem">
+          <div class="endpoint-header"><span class="method method-delete">DELETE</span><span class="endpoint-path">/api/messages/{id}</span></div>
+          <div class="endpoint-body"><p>Soft-delete — content replaced with "[Message deleted]", history preserved.</p></div>
+        </div>
+        <div class="endpoint-card" style="margin-top:.5rem">
+          <div class="endpoint-header"><span class="method method-post">POST</span><span class="endpoint-path">/api/messages/{id}/pin</span></div>
+          <div class="endpoint-body"><p>Pin a message — stored with pinned-at timestamp and pinner info.</p></div>
+        </div>
+        <div class="endpoint-card" style="margin-top:.5rem">
+          <div class="endpoint-header"><span class="method method-delete">DELETE</span><span class="endpoint-path">/api/messages/{id}/pin</span></div>
+          <div class="endpoint-body"><p>Unpin a previously pinned message.</p></div>
+        </div>
+        <div class="endpoint-card" style="margin-top:.5rem">
+          <div class="endpoint-header"><span class="method method-get">GET</span><span class="endpoint-path">/api/messages/room/{roomId}/pinned</span></div>
+          <div class="endpoint-body"><p>List all pinned messages in a room.</p></div>
+        </div>
+        <div class="endpoint-card" style="margin-top:.5rem">
+          <div class="endpoint-header"><span class="method method-get">GET</span><span class="endpoint-path">/api/messages/{id}/replies</span></div>
+          <div class="endpoint-body"><p>Fetch replies threaded to a parent message.</p></div>
+        </div>
+      </div>
+
+      <!-- Files -->
+      <div class="endpoint-group">
+        <div class="endpoint-group-title"><i data-lucide="upload" class="icon-sm"></i> Files</div>
+        <div class="endpoint-card">
+          <div class="endpoint-header"><span class="method method-post">POST</span><span class="endpoint-path">/api/files/upload</span></div>
+          <div class="endpoint-body"><p>Upload a file (multipart/form-data, max 20 MB). Returns public URL. Sandboxed storage.</p></div>
+        </div>
+        <div class="endpoint-card" style="margin-top:.5rem">
+          <div class="endpoint-header"><span class="method method-delete">DELETE</span><span class="endpoint-path">/api/files/{fileName}</span></div>
+          <div class="endpoint-body"><p>Delete a file — path-traversal safe, rate limited per user.</p></div>
+        </div>
+      </div>
+
+      <!-- Audit -->
+      <div class="endpoint-group">
+        <div class="endpoint-group-title"><i data-lucide="scroll-text" class="icon-sm"></i> Audit</div>
+        <div class="endpoint-card">
+          <div class="endpoint-header"><span class="method method-get">GET</span><span class="endpoint-path">/api/audit/recent</span></div>
+          <div class="endpoint-body"><p>Latest N audit events. Admin only. Query: <code>?limit=N</code>.</p></div>
+        </div>
+        <div class="endpoint-card" style="margin-top:.5rem">
+          <div class="endpoint-header"><span class="method method-get">GET</span><span class="endpoint-path">/api/audit/search</span></div>
+          <div class="endpoint-body"><p>Filter by user, action type, and date range. Admin only.</p></div>
+        </div>
+      </div>
+
+      <!-- Health -->
+      <div class="endpoint-group">
+        <div class="endpoint-group-title"><i data-lucide="activity" class="icon-sm"></i> Health &amp; Meta</div>
+        <div class="endpoint-card">
+          <div class="endpoint-header"><span class="method method-get">GET</span><span class="endpoint-path">/health</span></div>
+          <div class="endpoint-body"><p>Public health check — returns 200 OK when the API is up.</p></div>
+        </div>
+        <div class="endpoint-card" style="margin-top:.5rem">
+          <div class="endpoint-header"><span class="method method-get">GET</span><span class="endpoint-path">/swagger</span></div>
+          <div class="endpoint-body"><p>Interactive Swagger UI with full OpenAPI spec.</p></div>
+        </div>
+      </div>
+
+      <!-- WebSocket -->
+      <div class="endpoint-group">
+        <div class="endpoint-group-title"><i data-lucide="zap" class="icon-sm"></i> WebSocket Hub</div>
+        <div class="endpoint-card">
+          <div class="endpoint-header"><span class="method method-get">WS</span><span class="endpoint-path">/hubs/chat?access_token=…</span></div>
+          <div class="endpoint-body"><p>SignalR hub. Pass JWT via <code>access_token</code> query param. Supports automatic reconnect.</p></div>
+        </div>
+        <div class="endpoint-card" style="margin-top:.5rem">
+          <div class="endpoint-header"><span class="method method-post" style="background:rgba(167,139,250,.15);color:var(--accent4)">ON</span><span class="endpoint-path">ReceiveMessage · MessageEdited · MessageDeleted</span></div>
+          <div class="endpoint-body"><p>Incoming message events — fired for all members of the room.</p></div>
+        </div>
+        <div class="endpoint-card" style="margin-top:.5rem">
+          <div class="endpoint-header"><span class="method method-post" style="background:rgba(167,139,250,.15);color:var(--accent4)">ON</span><span class="endpoint-path">UserTyping · UserStoppedTyping · UserOnline · UserOffline</span></div>
+          <div class="endpoint-body"><p>Presence and typing indicator events broadcast to room members.</p></div>
+        </div>
+        <div class="endpoint-card" style="margin-top:.5rem">
+          <div class="endpoint-header"><span class="method method-post" style="background:rgba(167,139,250,.15);color:var(--accent4)">INVOKE</span><span class="endpoint-path">JoinRoom · LeaveRoom · Typing · StopTyping · Ping</span></div>
+          <div class="endpoint-body"><p>Client-to-server hub methods. Call via <code>conn.invoke("JoinRoom", roomId)</code>.</p></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- BASE URL -->
+    <div class="info-box reveal" style="margin-top:2rem">
+      <i data-lucide="link" class="icon-sm box-icon"></i>
+      <div class="box-body">
+        <strong>Base URL:</strong> All REST endpoints are at <code id="base-url-2">[origin]</code><code>/api/*</code>. The WebSocket hub is at <code>[origin]/hubs/chat</code>. All protected routes require <code>Authorization: Bearer &lt;token&gt;</code>.
+      </div>
+    </div>
+
+    <!-- NEXT STEPS -->
+    <div class="section-header reveal" style="margin-top:3rem">
+      <h2>Dig Deeper</h2>
+    </div>
+    <div class="next-steps reveal">
+      <a href="/playground.html" class="next-step-link"><i data-lucide="terminal" class="icon-sm"></i> Try in Playground</a>
+      <a href="/quickstart.html" class="next-step-link"><i data-lucide="rocket" class="icon-sm"></i> Quick Start Guide</a>
+      <a href="/docs.html" class="next-step-link"><i data-lucide="book-open" class="icon-sm"></i> Full API Docs</a>
+      <a href="/swagger" class="next-step-link"><i data-lucide="zap" class="icon-sm"></i> Swagger UI</a>
+      <a href="/status.html" class="next-step-link"><i data-lucide="activity" class="icon-sm"></i> Live Status</a>
+    </div>
+
+  </div>
+</div>
+
+<footer>
+  <p>Chat API v1 &nbsp;·&nbsp; .NET 9 &nbsp;·&nbsp;
+    <a href="/">Home</a> &nbsp;·&nbsp;
+    <a href="/quickstart.html">Quick Start</a> &nbsp;·&nbsp;
+    <a href="/playground.html">Playground</a> &nbsp;·&nbsp;
+    <a href="/api.html">API</a> &nbsp;·&nbsp;
+    <a href="/docs.html">Docs</a> &nbsp;·&nbsp;
+    <a href="/status.html">Status</a> &nbsp;·&nbsp;
+    <a href="/swagger">Swagger UI</a>
+  </p>
+</footer>
+
+<button class="scroll-top" id="scroll-top" aria-label="Scroll to top">
+  <i data-lucide="arrow-up" class="icon-md"></i>
+</button>
+
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<script src="/js/main.js"></script>
+</body>
+</html>
