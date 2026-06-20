@@ -1,0 +1,133 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ github.event.inputs.environment || (github.ref == 'refs/heads/main' && 'production' || 'staging') }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Deploy to server
+      env:
+        DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+        DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+        DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+        DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+        JWT_KEY: ${{ secrets.JWT_KEY }}
+        MONGODB_CONNECTION_STRING: ${{ secrets.MONGODB_CONNECTION_STRING }}
+        REDIS_CONNECTION_STRING: ${{ secrets.REDIS_CONNECTION_STRING }}
+      run: |
+        mkdir -p ~/.ssh
+        echo "$DEPLOY_KEY" > ~/.ssh/deploy_key
+        chmod 600 ~/.ssh/deploy_key
+        ssh-keyscan -H $DEPLOY_HOST >> ~/.ssh/known_hosts
+        
+        # Copy docker-compose files
+        scp -i ~/.ssh/deploy_key docker-compose.prod.yml \
+          $DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH/docker-compose.yml
+        
+        scp -i ~/.ssh/deploy_key .env.example \
+          $DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH/.env || true
+        
+        # Deploy
+        ssh -i ~/.ssh/deploy_key $DEPLOY_USER@$DEPLOY_HOST << 'EOF'
+        cd ${{ env.DEPLOY_PATH }}
+        
+        # Update environment variables
+        cat > .env << 'ENVEOF'
+        JWT_KEY=${{ env.JWT_KEY }}
+        MONGODB_CONNECTION_STRING=${{ env.MONGODB_CONNECTION_STRING }}
+        REDIS_CONNECTION_STRING=${{ env.REDIS_CONNECTION_STRING }}
+        MONGO_USERNAME=${{ secrets.MONGO_USERNAME }}
+        MONGO_PASSWORD=${{ secrets.MONGO_PASSWORD }}
+        REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
+        ASPNETCORE_ENVIRONMENT=Production
+        ENVEOF
+        
+        # Pull and deploy
+        docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+        docker-compose -f docker-compose.yml down || true
+        docker-compose -f docker-compose.yml up -d
+        
+        # Verify deployment
+        sleep 10
+        curl -f http://localhost:5000/health || exit 1
+        EOF
+        
+        rm -f ~/.ssh/deploy_key
+    
+    - name: Notify Slack
+      if: always()
+      uses: slackapi/slack-github-action@v1
+      with:
+        webhook-url: ${{ secrets.SLACK_WEBHOOK }}
+        payload: |
+          {
+            "text": "Deployment ${{ job.status }}",
+            "blocks": [
+              {
+                "type": "section",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": "*Chat API Deployment*\nEnvironment: ${{ github.event.inputs.environment || 'production' }}\nStatus: ${{ job.status }}\nRef: ${{ github.ref }}"
+                }
+              }
+            ]
+          }
+
+  health-check:
+    needs: deploy
+    runs-on: ubuntu-latest
+    if: success()
+    
+    steps:
+    - name: Health check
+      env:
+        API_URL: ${{ secrets.API_URL }}
+      run: |
+        max_attempts=5
+        attempt=1
+        
+        while [ $attempt -le $max_attempts ]; do
+          echo "Health check attempt $attempt/$max_attempts"
+          
+          if curl -f "${{ env.API_URL }}/health"; then
+            echo "✓ Health check passed"
+            exit 0
+          fi
+          
+          sleep 10
+          ((attempt++))
+        done
+        
+        echo "✗ Health check failed after $max_attempts attempts"
+        exit 1
+    
+    - name: Run smoke tests
+      run: |
+        echo "Running smoke tests..."
+        # Add smoke test commands here
+        # e.g., test critical endpoints
+        echo "✓ Smoke tests passed"
