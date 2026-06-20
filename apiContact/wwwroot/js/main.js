@@ -168,7 +168,7 @@ function initCopyBtns() {
 
 /* ── Scroll-reveal ───────────────────────────────────────── */
 function initReveal() {
-  const els = document.querySelectorAll('.card, .endpoint-card, .stat, .tech-chip, .ws-demo');
+  const els = document.querySelectorAll('.card, .endpoint-card, .stat, .tech-chip, .ws-demo, .qs-step, .ws-event, .ws-flow-grid');
   if (!els.length) return;
 
   const io = new IntersectionObserver(entries => {
@@ -239,6 +239,22 @@ function initTypewriter() {
   tick();
 }
 
+/* ── Scroll-to-top button ────────────────────────────────── */
+function initScrollTop() {
+  const btn = document.getElementById('scroll-top');
+  if (!btn) return;
+
+  const onScroll = () => {
+    btn.classList.toggle('visible', window.scrollY > 320);
+  };
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+
+  btn.addEventListener('click', () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+}
+
 /* ── Lucide icon init ────────────────────────────────────── */
 function initIcons() {
   if (typeof lucide !== 'undefined') lucide.createIcons();
@@ -250,21 +266,70 @@ function initBaseUrl() {
   if (el) el.textContent = window.location.origin;
 }
 
+/* ── Error boundary: catch unhandled JS errors ───────────── */
+function initErrorBoundary() {
+  const toast = (msg) => {
+    if (document.getElementById('err-toast')) return;
+    const t = document.createElement('div');
+    t.id = 'err-toast';
+    t.setAttribute('role', 'alert');
+    Object.assign(t.style, {
+      position: 'fixed', bottom: '4.5rem', left: '50%',
+      transform: 'translateX(-50%)',
+      background: 'var(--bg2,#1e1e1e)', color: 'var(--text,#e5e5e5)',
+      border: '1px solid rgba(249,115,22,.4)', borderRadius: '8px',
+      padding: '.55rem 1.1rem', fontSize: '.78rem', zIndex: '9999',
+      boxShadow: '0 4px 20px rgba(0,0,0,.4)', maxWidth: '90vw',
+      fontFamily: 'sans-serif', lineHeight: '1.5',
+      opacity: '0', transition: 'opacity .25s',
+      display: 'flex', alignItems: 'center', gap: '8px',
+    });
+    t.innerHTML = `<span style="color:#f97316">⚠</span> ${msg}`;
+    document.body.appendChild(t);
+    requestAnimationFrame(() => { t.style.opacity = '1'; });
+    setTimeout(() => {
+      t.style.opacity = '0';
+      t.addEventListener('transitionend', () => t.remove(), { once: true });
+    }, 5000);
+  };
+
+  window.addEventListener('error', e => {
+    if (e.message && !e.message.includes('Script error')) {
+      toast('An unexpected error occurred. Check the console for details.');
+    }
+  });
+
+  window.addEventListener('unhandledrejection', e => {
+    const msg = e.reason?.message || String(e.reason || 'Unknown');
+    if (!msg.includes('AbortError') && !msg.includes('abort')) {
+      toast('An async error occurred. Check the console for details.');
+    }
+  });
+}
+
+/* ── Safe runner: call fn, log if it throws ─────────────── */
+function safe(fn, name) {
+  try { fn(); }
+  catch (e) { console.error(`[ChatAPI] ${name} failed:`, e); }
+}
+
 /* ── Init ────────────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', () => {
-  initTheme();
-  initBaseUrl();
-  dismissLoader();
-  initHamburger();
-  initNav();
-  initDocsTabs();
-  initEndpointAccordion();
-  initCopyBtns();
-  initReveal();
-  initStatusBadge();
-  initCounters();
-  initTypewriter();
-  initIcons();
+  safe(initErrorBoundary, 'initErrorBoundary');
+  safe(initTheme,         'initTheme');
+  safe(initBaseUrl,       'initBaseUrl');
+  safe(dismissLoader,     'dismissLoader');
+  safe(initHamburger,     'initHamburger');
+  safe(initNav,           'initNav');
+  safe(initDocsTabs,      'initDocsTabs');
+  safe(initEndpointAccordion, 'initEndpointAccordion');
+  safe(initCopyBtns,      'initCopyBtns');
+  safe(initReveal,        'initReveal');
+  safe(initStatusBadge,   'initStatusBadge');
+  safe(initCounters,      'initCounters');
+  safe(initTypewriter,    'initTypewriter');
+  safe(initScrollTop,     'initScrollTop');
+  safe(initIcons,         'initIcons');
 
   document.getElementById('theme-toggle')?.addEventListener('click', () => {
     const cur = document.documentElement.getAttribute('data-theme') || 'dark';
