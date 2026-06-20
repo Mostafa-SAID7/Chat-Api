@@ -44,45 +44,26 @@ A modern, real-time chat REST API built with **ASP.NET Core 9**, **SignalR**, **
 
 ## 🚀 Quick Start
 
-### Prerequisites
+### Replit (Easiest - One Click)
 
-- .NET 9 SDK
-- MongoDB (optional - will use in-memory if not configured)
-- Redis (optional)
+[![Run on Replit](https://replit.com/badge/github/Mostafa-SAID7/Chat-Api)](https://replit.com/github/Mostafa-SAID7/Chat-Api)
 
-### Installation
+1. Click the Replit badge above
+2. Click **"Run"** button
+3. Access API at the provided URL
+
+### Local Setup
 
 ```bash
 git clone https://github.com/Mostafa-SAID7/Chat-Api.git
 cd Chat-Api/apiContact
 dotnet restore
-```
-
-### Running Locally
-
-```bash
 dotnet run
 ```
 
 The API will start on **http://localhost:5000**
 
 Access Swagger UI: **http://localhost:5000/swagger**
-
-### Environment Configuration
-
-Create a `.env` file or set these environment variables:
-
-```env
-JWT_KEY=your_secret_key_minimum_32_characters_long
-MongoDB__ConnectionString=mongodb://localhost:27017/chatdb
-Redis__ConnectionString=localhost:6379
-```
-
-| Variable | Description | Required | Default |
-|----------|-------------|----------|---------|
-| `JWT_KEY` | Secret for JWT signing (min 32 chars) | ✅ Yes | N/A |
-| `MongoDB__ConnectionString` | MongoDB connection | ❌ No | In-memory DB |
-| `Redis__ConnectionString` | Redis connection | ❌ No | Disabled |
 
 ---
 

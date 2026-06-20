@@ -1,4 +1,5 @@
-modules = ["dotnet-7.0", "web", "nodejs-20", "dotnet-9.0"]
+modules = ["dotnet-9.0", "nodejs-20", "docker", "web"]
+
 [agent]
 expertMode = true
 stack = "BEST_EFFORT_FALLBACK"
@@ -6,34 +7,76 @@ stack = "BEST_EFFORT_FALLBACK"
 [nix]
 channel = "stable-25_05"
 
+# Environment setup
+[env]
+JWT_KEY = "your_super_secret_key_minimum_32_characters_long_for_development"
+ASPNETCORE_ENVIRONMENT = "Development"
+ASPNETCORE_URLS = "http://0.0.0.0:5000"
+MongoDB__ConnectionString = "mongodb://localhost:27017/chatdb"
+Redis__ConnectionString = "localhost:6379"
+
+# Workflow configuration
 [workflows]
-runButton = "Project"
+runButton = "Dev Setup"
 
 [[workflows.workflow]]
-name = "Project"
-mode = "parallel"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "Start application"
-
-[[workflows.workflow]]
-name = "Start application"
+name = "Dev Setup"
+mode = "sequential"
 author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd apiContact && dotnet run"
+args = "echo '🚀 Chat API - Development Setup' && echo 'Building and starting services...'"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd apiContact && dotnet restore"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd apiContact && dotnet build"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd apiContact && dotnet run --no-build"
 waitForPort = 5000
 
 [workflows.workflow.metadata]
 outputType = "webview"
 
+# Port configuration
 [[ports]]
 localPort = 5000
 externalPort = 80
+description = "Chat API - ASP.NET Core"
+expose = true
 
+[[ports]]
+localPort = 27017
+externalPort = 27017
+description = "MongoDB"
+expose = false
+
+[[ports]]
+localPort = 6379
+externalPort = 6379
+description = "Redis"
+expose = false
+
+# Deployment configuration
 [deployment]
 deploymentTarget = "autoscale"
-run = ["dotnet", "run", "--project", "apiContact/apiContact.csproj", "--urls", "http://0.0.0.0:5000"]
+run = [
+  "dotnet",
+  "run",
+  "--project",
+  "apiContact/apiContact.csproj",
+  "--urls",
+  "http://0.0.0.0:5000",
+  "--configuration",
+  "Release"
+]
+
+# Build configuration
+[build]
+files = ["apiContact/appsettings.json", "apiContact/appsettings.Development.json"]

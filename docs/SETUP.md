@@ -9,6 +9,49 @@
 
 ---
 
+## 🚀 Quick Start Guide
+
+### Option 1: Replit (Easiest - Cloud)
+
+1. Click the **"Run"** button in Replit
+2. Wait for the project to build and start
+3. Access the API at the provided URL
+4. Swagger UI: `{replit-url}/swagger`
+
+**Features:**
+- ✅ No local setup needed
+- ✅ Works in browser
+- ✅ Automatic environment setup
+- ✅ One-click deployment
+
+### Option 2: Local Docker (Recommended for Production-like)
+
+```bash
+# Clone repository
+git clone https://github.com/Mostafa-SAID7/Chat-Api.git
+cd Chat-Api
+
+# Start with Docker
+docker-compose up -d
+
+# Access services
+# API: http://localhost:5000/swagger
+# MongoDB: http://localhost:8081
+# Redis: http://localhost:8082
+```
+
+### Option 3: Local .NET (Fastest Development)
+
+```bash
+cd Chat-Api/apiContact
+dotnet restore
+dotnet run
+```
+
+API available at `http://localhost:5000`
+
+---
+
 ## Local Development Setup
 
 ### Step 1: Clone Repository
