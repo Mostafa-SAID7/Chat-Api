@@ -109,6 +109,32 @@ builder.Services.AddMemoryCache();
 var redisConnStr = builder.Configuration["Redis:ConnectionString"]
                ?? Environment.GetEnvironmentVariable("REDIS_CONNECTION_STRING");
 
+// Fix LangCache Redis format: redis://:password@host -> host:password
+if (!string.IsNullOrWhiteSpace(redisConnStr) && redisConnStr.StartsWith("redis://"))
+{
+    // Convert redis://:password@host:port to host:port,password=password format
+    try
+    {
+        var uri = new Uri(redisConnStr);
+        var host = uri.Host;
+        var port = uri.Port > 0 ? uri.Port : 6379;
+        var password = uri.UserInfo?.Split(':').LastOrDefault();
+        
+        if (!string.IsNullOrWhiteSpace(password))
+        {
+            redisConnStr = $"{host}:{port},password={password}";
+        }
+        else
+        {
+            redisConnStr = $"{host}:{port}";
+        }
+    }
+    catch
+    {
+        // If parsing fails, try as-is
+    }
+}
+
 var redisAvailable = false;
 if (!string.IsNullOrWhiteSpace(redisConnStr))
 {
@@ -122,7 +148,14 @@ if (!string.IsNullOrWhiteSpace(redisConnStr))
     {
         var startupLog = LoggerFactory.Create(lb => lb.AddConsole()).CreateLogger("Startup");
         startupLog.LogWarning(ex, "Redis connection failed — continuing with in-memory cache only");
+        // Register null for Redis when connection fails
+        builder.Services.AddSingleton(sp => (IConnectionMultiplexer?)null);
     }
+}
+else
+{
+    // Register null for Redis when not configured
+    builder.Services.AddSingleton(sp => (IConnectionMultiplexer?)null);
 }
 
 // ── Cache service (wraps Redis + IMemoryCache with transparent fallback) ──────
@@ -161,6 +194,42 @@ builder.Services.AddRateLimiter(opt =>
         limiterOpts.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
     });
 });
+
+// ── MongoDB Client & Database ───────────────────────────────────────────────
+var mongoConnStr = builder.Configuration["MongoDB:ConnectionString"]
+                ?? Environment.GetEnvironmentVariable("MONGODB_CONNECTION_STRING");
+var mongoDbName  = builder.Configuration["MongoDB:DatabaseName"] 
+                ?? Environment.GetEnvironmentVariable("MONGODB_DATABASE_NAME")
+                ?? "ChatDb";
+
+IMongoClient? registeredMongoClient = null;
+IMongoDatabase? registeredMongoDb = null;
+
+if (!string.IsNullOrWhiteSpace(mongoConnStr))
+{
+    try
+    {
+        registeredMongoClient = new MongoClient(mongoConnStr);
+        registeredMongoDb = registeredMongoClient.GetDatabase(mongoDbName);
+        builder.Services.AddSingleton(registeredMongoClient);
+        builder.Services.AddSingleton(registeredMongoDb);
+    }
+    catch (Exception ex)
+    {
+        var logger = LoggerFactory.Create(lb => lb.AddConsole()).CreateLogger("Startup");
+        logger.LogWarning(ex, "MongoDB connection failed - using in-memory fallback");
+    }
+}
+
+// Ensure services are available even if MongoDB fails
+if (registeredMongoClient == null)
+{
+    builder.Services.AddSingleton<IMongoClient>(sp => new MongoClient());
+}
+if (registeredMongoDb == null)
+{
+    builder.Services.AddSingleton<IMongoDatabase>(sp => sp.GetRequiredService<IMongoClient>().GetDatabase(mongoDbName));
+}
 
 // ── Repository layer (Unit of Work + Repositories) ───────────────────────────
 builder.Services.AddScoped<IUserRepository,    UserRepository>();

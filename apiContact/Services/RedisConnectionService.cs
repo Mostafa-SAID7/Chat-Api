@@ -14,14 +14,14 @@ public interface IRedisConnectionService
 
 public class RedisConnectionService : IRedisConnectionService
 {
-    private readonly IConnectionMultiplexer _redis;
+    private readonly IConnectionMultiplexer? _redis;
     private readonly ILogger<RedisConnectionService> _logger;
 
     public RedisConnectionService(
-        IConnectionMultiplexer redis,
+        IConnectionMultiplexer? redis,
         ILogger<RedisConnectionService> logger)
     {
-        _redis = redis ?? throw new ArgumentNullException(nameof(redis));
+        _redis = redis;
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -32,6 +32,12 @@ public class RedisConnectionService : IRedisConnectionService
     {
         try
         {
+            if (_redis == null)
+            {
+                _logger.LogWarning("⚠️ Redis not configured - using in-memory cache only");
+                return false;
+            }
+
             _logger.LogInformation("🔍 Verifying Redis connection...");
 
             var stopwatch = Stopwatch.StartNew();
@@ -42,7 +48,14 @@ public class RedisConnectionService : IRedisConnectionService
                 return false;
             }
 
-            var server = _redis.GetServer(_redis.GetEndPoints().FirstOrDefault() 
+            var endpoints = _redis.GetEndPoints();
+            if (endpoints.Length == 0)
+            {
+                _logger.LogWarning("⚠️ No Redis endpoints available");
+                return false;
+            }
+
+            var server = _redis.GetServer(endpoints.FirstOrDefault() 
                 ?? throw new InvalidOperationException("No Redis endpoints available"));
 
             var pingResponse = await server.PingAsync();
@@ -71,13 +84,25 @@ public class RedisConnectionService : IRedisConnectionService
 
         try
         {
+            if (_redis == null)
+            {
+                status.IsConnected = false;
+                status.IsHealthy = false;
+                status.ErrorMessage = "Redis not configured";
+                return status;
+            }
+
             status.IsConnected = _redis.IsConnected;
             status.ConnectedEndpoints = _redis.GetEndPoints().Select(ep => ep.ToString()).ToList() ?? new();
 
             if (_redis.IsConnected)
             {
-                var server = _redis.GetServer(_redis.GetEndPoints().First());
-                status.ServerInfo = server.Info().FirstOrDefault()?.ToString() ?? "Unknown";
+                var endpoints = _redis.GetEndPoints();
+                if (endpoints.Length > 0)
+                {
+                    var server = _redis.GetServer(endpoints.First());
+                    status.ServerInfo = server.Info().FirstOrDefault()?.ToString() ?? "Unknown";
+                }
                 status.IsHealthy = await VerifyConnectionAsync();
             }
         }
