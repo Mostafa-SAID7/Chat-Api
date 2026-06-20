@@ -126,4 +126,26 @@ namespace apiContact.Features.Messages
         public Task Handle(RemoveReactionCommand cmd, CancellationToken ct)
             => _uow.Messages.RemoveReactionAsync(cmd.MessageId, cmd.Emoji, cmd.UserId);
     }
+
+    // ── PinMessage ────────────────────────────────────────────
+    public record PinMessageCommand(string MessageId, string PinnedBy) : IRequest<bool>;
+
+    public class PinMessageHandler : IRequestHandler<PinMessageCommand, bool>
+    {
+        private readonly IUnitOfWork _uow;
+        public PinMessageHandler(IUnitOfWork uow) => _uow = uow;
+        public Task<bool> Handle(PinMessageCommand cmd, CancellationToken ct)
+            => _uow.Messages.PinAsync(cmd.MessageId, cmd.PinnedBy);
+    }
+
+    // ── UnpinMessage ──────────────────────────────────────────
+    public record UnpinMessageCommand(string MessageId) : IRequest<bool>;
+
+    public class UnpinMessageHandler : IRequestHandler<UnpinMessageCommand, bool>
+    {
+        private readonly IUnitOfWork _uow;
+        public UnpinMessageHandler(IUnitOfWork uow) => _uow = uow;
+        public Task<bool> Handle(UnpinMessageCommand cmd, CancellationToken ct)
+            => _uow.Messages.UnpinAsync(cmd.MessageId);
+    }
 }

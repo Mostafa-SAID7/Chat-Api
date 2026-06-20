@@ -236,15 +236,32 @@ app.UseSwaggerUI(c =>
 // 5. CORS
 app.UseCors(isDev ? "DevelopmentPolicy" : "ProductionPolicy");
 
-// 6. Static files
+// 6. Custom 404 handler — redirect unknown browser routes to /404.html
+//    API/hub/swagger 404s stay as JSON (HasStarted = true by then)
+app.Use(async (ctx, next) =>
+{
+    await next();
+    var p = ctx.Request.Path.Value ?? "";
+    if (ctx.Response.StatusCode == 404
+        && !p.StartsWith("/api",     StringComparison.OrdinalIgnoreCase)
+        && !p.StartsWith("/hubs",    StringComparison.OrdinalIgnoreCase)
+        && !p.StartsWith("/swagger", StringComparison.OrdinalIgnoreCase)
+        && !p.StartsWith("/health",  StringComparison.OrdinalIgnoreCase)
+        && !ctx.Response.HasStarted)
+    {
+        ctx.Response.Redirect("/404.html");
+    }
+});
+
+// 7. Static files
 app.UseDefaultFiles();
 app.UseStaticFiles();
 
-// 7. Auth
+// 8. Auth
 app.UseAuthentication();
 app.UseAuthorization();
 
-// 8. Endpoints
+// 9. Endpoints
 app.MapControllers();
 app.MapHub<ChatHub>("/hubs/chat");
 

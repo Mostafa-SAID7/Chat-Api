@@ -16,7 +16,7 @@
     })();
   </script>
 </head>
-<body>
+<body class="docs-page">
 
 <!-- PAGE LOADER -->
 <div id="page-loader" aria-hidden="true">
@@ -27,12 +27,15 @@
      MAIN NAV — brand left · links center · icons right
      ═══════════════════════════════════════════════════════ -->
 <nav>
-  <a class="nav-logo" href="/"><div class="dot"></div>Chat API</a>
+  <a class="nav-logo" href="/"><div class="dot"></div>Chat<span style="color:var(--accent)">API</span></a>
   <div class="nav-links">
     <a href="/">Home</a>
-    <a href="/docs.html" class="active">Docs</a>
+    <a href="/quickstart.html">Quick Start</a>
+    <a href="/playground.html">Playground</a>
+    <a href="/api.html">API</a>
+    <a href="/docs.html">Docs</a>
+    <a href="/status.html">Status</a>
     <a href="/swagger">Swagger <span class="nav-badge">UI</span></a>
-    <a href="/health">Health</a>
   </div>
   <div class="nav-actions">
     <button class="theme-toggle" id="theme-toggle" title="Toggle theme" aria-label="Toggle theme">
@@ -49,30 +52,16 @@
 <!-- MOBILE MENU -->
 <div class="mobile-menu" id="mobile-menu">
   <a href="/"><i data-lucide="home" class="icon-md"></i> Home</a>
-  <a href="/docs.html" class="active"><i data-lucide="book-open" class="icon-md"></i> Docs</a>
+  <a href="/quickstart.html"><i data-lucide="rocket" class="icon-md"></i> Quick Start</a>
+  <a href="/playground.html"><i data-lucide="terminal" class="icon-md"></i> Playground</a>
+  <a href="/api.html"><i data-lucide="layers" class="icon-md"></i> API</a>
+  <a href="/docs.html"><i data-lucide="book-open" class="icon-md"></i> Docs</a>
+  <a href="/status.html"><i data-lucide="activity" class="icon-md"></i> Status</a>
   <a href="/swagger"><i data-lucide="zap" class="icon-md"></i> Swagger UI</a>
-  <a href="/health"><i data-lucide="activity" class="icon-md"></i> Health</a>
 </div>
 
 <!-- ═══════════════════════════════════════════════════════
-     DOCS INTRO (always visible)
-     ═══════════════════════════════════════════════════════ -->
-<div class="docs-intro">
-  <div class="docs-intro-inner">
-    <div class="hero-tag"><i data-lucide="book-open" class="icon-sm"></i> API Reference v1</div>
-    <h1>Chat API Documentation</h1>
-    <p>REST + WebSocket (SignalR) backend. All responses use a standard envelope. All IDs are GUIDs. JWT required on protected routes.</p>
-    <div class="docs-meta">
-      <span class="docs-meta-item"><i data-lucide="link" class="icon-sm"></i> Base: <code>http://localhost:5000</code></span>
-      <span class="docs-meta-item"><i data-lucide="lock" class="icon-sm"></i> Auth: <code>Authorization: Bearer &lt;token&gt;</code></span>
-      <span class="docs-meta-item"><i data-lucide="zap" class="icon-sm"></i> WS Hub: <code>/hubs/chat</code></span>
-      <span class="docs-meta-item"><i data-lucide="shield" class="icon-sm"></i> Rate limit: <code>10/min auth · 120/min global</code></span>
-    </div>
-  </div>
-</div>
-
-<!-- ═══════════════════════════════════════════════════════
-     STICKY TAB NAV
+     STICKY TAB NAV  — sits right below main nav, always visible
      ═══════════════════════════════════════════════════════ -->
 <div class="docs-tabnav" id="docs-tabnav" role="tablist" aria-label="API sections">
   <div class="docs-tabnav-inner">
@@ -97,6 +86,23 @@
     <button class="dtab" data-tab="websocket" role="tab" aria-selected="false">
       <i data-lucide="zap" class="icon-sm"></i> WebSocket
     </button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     DOCS INTRO — scrolls below the sticky tabnav
+     ═══════════════════════════════════════════════════════ -->
+<div class="docs-intro">
+  <div class="docs-intro-inner">
+    <div class="hero-tag"><i data-lucide="book-open" class="icon-sm"></i> API Reference v1</div>
+    <h1>Chat API Documentation</h1>
+    <p>REST + WebSocket (SignalR) backend. All responses use a standard envelope. All IDs are GUIDs. JWT required on protected routes.</p>
+    <div class="docs-meta">
+      <span class="docs-meta-item"><i data-lucide="link" class="icon-sm"></i> Base: <code id="base-url">…</code></span>
+      <span class="docs-meta-item"><i data-lucide="lock" class="icon-sm"></i> Auth: <code>Authorization: Bearer &lt;token&gt;</code></span>
+      <span class="docs-meta-item"><i data-lucide="zap" class="icon-sm"></i> WS Hub: <code>/hubs/chat</code></span>
+      <span class="docs-meta-item"><i data-lucide="shield" class="icon-sm"></i> Rate limit: <code>10/min auth · 120/min global</code></span>
+    </div>
   </div>
 </div>
 
@@ -1109,11 +1115,18 @@ conn.on(<span class="str">"UserOnline"</span>, ({ userId }) =&gt; {
 <footer>
   <p>Chat API v1 &nbsp;·&nbsp; .NET 9 &nbsp;·&nbsp;
     <a href="/">Home</a> &nbsp;·&nbsp;
+    <a href="/quickstart.html">Quick Start</a> &nbsp;·&nbsp;
+    <a href="/playground.html">Playground</a> &nbsp;·&nbsp;
+    <a href="/api.html">API</a> &nbsp;·&nbsp;
     <a href="/docs.html">Docs</a> &nbsp;·&nbsp;
-    <a href="/swagger">Swagger UI</a> &nbsp;·&nbsp;
-    <a href="/health">Health</a>
+    <a href="/status.html">Status</a> &nbsp;·&nbsp;
+    <a href="/swagger">Swagger UI</a>
   </p>
 </footer>
+
+<button class="scroll-top" id="scroll-top" aria-label="Scroll to top">
+  <i data-lucide="chevrons-up" class="icon-md"></i>
+</button>
 
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js" defer></script>
 <script src="/js/main.js" defer></script>

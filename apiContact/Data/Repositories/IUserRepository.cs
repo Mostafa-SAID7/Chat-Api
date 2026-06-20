@@ -15,5 +15,10 @@ namespace apiContact.Data.Repositories
         Task<bool>           ChangePasswordAsync(string id, string newPasswordHash);
         Task<List<ChatUser>> SearchAsync(UserSearchQuery q);
         Task<int>            CountSearchAsync(UserSearchQuery q);
+
+        // ── Blocking ──────────────────────────────────────────────
+        Task                 BlockUserAsync(string id, string targetId);
+        Task                 UnblockUserAsync(string id, string targetId);
+        Task<List<ChatUser>> GetBlockedAsync(string id);
     }
 }

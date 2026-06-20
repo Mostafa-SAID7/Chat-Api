@@ -13,5 +13,10 @@ namespace apiContact.Data.Repositories
         Task<int>           GetUnreadCountAsync(string roomId, string userId);
         Task                AddReactionAsync(string id, string emoji, string userId);
         Task                RemoveReactionAsync(string id, string emoji, string userId);
+
+        // ── Pinning ───────────────────────────────────────────────
+        Task<bool>          PinAsync(string id, string pinnedBy);
+        Task<bool>          UnpinAsync(string id);
+        Task<List<Message>> GetPinnedAsync(string roomId);
     }
 }

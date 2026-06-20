@@ -127,5 +127,33 @@ namespace apiContact.Controllers
             await _mediator.Send(new RemoveReactionCommand(id, emoji, CallerId));
             return Ok(ApiResponse<object>.Ok(new { id, emoji }, "Reaction removed"));
         }
+
+        // ── Pinning ───────────────────────────────────────────────
+
+        /// <summary>Pin a message so it appears in the room's pinned list</summary>
+        [HttpPost("{id}/pin")]
+        public async Task<IActionResult> PinMessage(string id)
+        {
+            var ok = await _mediator.Send(new PinMessageCommand(id, CallerId));
+            if (!ok) return NotFound(ApiResponse<object>.Fail("Message not found"));
+            return Ok(ApiResponse<object>.Ok(new { id }, "Message pinned"));
+        }
+
+        /// <summary>Unpin a previously pinned message</summary>
+        [HttpDelete("{id}/pin")]
+        public async Task<IActionResult> UnpinMessage(string id)
+        {
+            var ok = await _mediator.Send(new UnpinMessageCommand(id));
+            if (!ok) return NotFound(ApiResponse<object>.Fail("Message not found"));
+            return Ok(ApiResponse<object>.Ok(new { id }, "Message unpinned"));
+        }
+
+        /// <summary>Get all pinned messages in a room, ordered by pin time (newest first)</summary>
+        [HttpGet("room/{roomId}/pinned")]
+        public async Task<IActionResult> GetPinned(string roomId)
+        {
+            var list = await _mediator.Send(new GetPinnedMessagesQuery(roomId));
+            return Ok(ApiResponse<object>.Ok(list, total: list.Count));
+        }
     }
 }

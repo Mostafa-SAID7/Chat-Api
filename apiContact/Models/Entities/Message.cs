@@ -37,5 +37,15 @@ namespace apiContact.Models.Entities
         // Convenience: Timestamp aligns with BaseEntity.CreatedAt but kept
         // as a separate field for backward compatibility with existing clients.
         public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+
+        // Pinning — room admin or sender can pin a message for quick reference
+        public bool      IsPinned  { get; set; } = false;
+        public DateTime? PinnedAt  { get; set; }
+        public string?   PinnedBy  { get; set; }
+
+        // Threading — a message may be a reply to another message
+        public string? ReplyToId         { get; set; }
+        public string? ReplyToPreview    { get; set; }   // snapshot of parent content
+        public string? ReplyToSenderName { get; set; }
     }
 }

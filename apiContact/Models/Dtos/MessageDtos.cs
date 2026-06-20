@@ -18,6 +18,9 @@ namespace apiContact.Models.Dtos
         public MessageType Type { get; set; } = MessageType.Text;
 
         public List<string> Tags { get; set; } = new();
+
+        /// <summary>Optional: ID of the message this is a threaded reply to.</summary>
+        public string? ReplyToId { get; set; }
     }
 
     public class EditMessageDto

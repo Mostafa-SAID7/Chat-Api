@@ -75,4 +75,15 @@ namespace apiContact.Features.Users
             return PagedResult<ChatUser>.From(items, total, q.Params.Page, q.Params.PageSize);
         }
     }
+
+    // ── GetBlockedUsers ───────────────────────────────────────
+    public record GetBlockedUsersQuery(string UserId) : IRequest<List<ChatUser>>;
+
+    public class GetBlockedUsersHandler : IRequestHandler<GetBlockedUsersQuery, List<ChatUser>>
+    {
+        private readonly IUnitOfWork _uow;
+        public GetBlockedUsersHandler(IUnitOfWork uow) => _uow = uow;
+        public Task<List<ChatUser>> Handle(GetBlockedUsersQuery q, CancellationToken ct)
+            => _uow.Users.GetBlockedAsync(q.UserId);
+    }
 }

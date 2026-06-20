@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>API Status · Chat API</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <style>
+    /* ── Status-page-specific tokens ─────────────────────────── */
+    .status-hero {
+      padding: 3rem 0 2rem;
+      text-align: center;
+    }
+    .status-hero h1 { font-size: 2rem; font-weight: 700; margin-bottom: .4rem; }
+    .status-hero p  { color: var(--text-muted); font-size: .95rem; }
+
+    /* Overall health badge */
+    .health-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      margin-top: 1.2rem;
+      padding: .5rem 1.25rem;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: .95rem;
+      border: 1.5px solid;
+      transition: all .3s;
+    }
+    .health-badge.ok      { color: var(--green);  border-color: var(--green);  background: color-mix(in srgb,var(--green)  10%,transparent); }
+    .health-badge.warn    { color: var(--yellow); border-color: var(--yellow); background: color-mix(in srgb,var(--yellow) 10%,transparent); }
+    .health-badge.down    { color: var(--red);    border-color: var(--red);    background: color-mix(in srgb,var(--red)    10%,transparent); }
+    .health-badge.loading { color: var(--text-muted); border-color: var(--border); background: transparent; }
+    .badge-dot { width:9px; height:9px; border-radius:50%; background:currentColor; }
+    .badge-dot.pulse { animation: pulse 1.4s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+    /* Auto-refresh info bar */
+    .refresh-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      max-width: 860px;
+      margin: 0 auto 1.5rem;
+      padding: .6rem 1rem;
+      border-radius: 8px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      font-size: .82rem;
+      color: var(--text-muted);
+    }
+    .refresh-bar-left  { display:flex; align-items:center; gap:.5rem; }
+    .refresh-btn {
+      display: flex; align-items: center; gap: .35rem;
+      padding: .3rem .75rem;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      font-size: .8rem;
+      cursor: pointer;
+      transition: background .2s, border-color .2s;
+    }
+    .refresh-btn:hover { background: var(--surface-hover); border-color: var(--accent); }
+    #countdown { font-variant-numeric: tabular-nums; }
+
+    /* Section grid */
+    .status-section {
+      max-width: 860px;
+      margin: 0 auto 2.5rem;
+    }
+    .status-section-title {
+      font-size: .72rem;
+      font-weight: 600;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: .75rem;
+    }
+
+    /* Check row */
+    .check-list { display:flex; flex-direction:column; gap:.45rem; }
+    .check-row {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      padding: .65rem 1rem;
+      border-radius: 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      transition: border-color .2s;
+    }
+    .check-row:hover { border-color: var(--accent-subtle,var(--accent)); }
+
+    .check-indicator {
+      width: 10px; height: 10px; border-radius: 50%;
+      flex-shrink: 0;
+      transition: background .3s;
+    }
+    .check-indicator.ok      { background: var(--green); }
+    .check-indicator.warn    { background: var(--yellow); }
+    .check-indicator.down    { background: var(--red); }
+    .check-indicator.loading { background: var(--border); animation: pulse 1.2s infinite; }
+
+    .check-name {
+      flex: 1;
+      font-size: .88rem;
+      font-weight: 500;
+    }
+    .check-path {
+      font-size: .78rem;
+      color: var(--text-muted);
+      font-family: var(--font-mono, monospace);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 220px;
+    }
+    .check-latency {
+      font-size: .8rem;
+      font-variant-numeric: tabular-nums;
+      min-width: 60px;
+      text-align: right;
+      color: var(--text-muted);
+    }
+    .check-latency.fast { color: var(--green);  }
+    .check-latency.med  { color: var(--yellow); }
+    .check-latency.slow { color: var(--red);    }
+
+    .check-status-text {
+      font-size: .78rem;
+      min-width: 42px;
+      text-align: right;
+      font-weight: 600;
+    }
+    .check-status-text.ok   { color: var(--green);  }
+    .check-status-text.warn { color: var(--yellow); }
+    .check-status-text.down { color: var(--red);    }
+    .check-status-text.loading { color: var(--text-muted); }
+
+    /* WS card */
+    .ws-card {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: .9rem 1rem;
+      border-radius: 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      font-size: .88rem;
+    }
+    .ws-state {
+      font-weight: 600;
+      font-size: .82rem;
+      padding: .2rem .6rem;
+      border-radius: 6px;
+    }
+    .ws-state.connected    { background: color-mix(in srgb,var(--green)  15%,transparent); color: var(--green);  }
+    .ws-state.connecting   { background: color-mix(in srgb,var(--yellow) 15%,transparent); color: var(--yellow); }
+    .ws-state.disconnected { background: color-mix(in srgb,var(--red)    15%,transparent); color: var(--red);    }
+    .ws-detail { color:var(--text-muted); font-size:.8rem; margin-left:auto; }
+
+    /* Stats row */
+    .stats-strip {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: .75rem;
+      max-width: 860px;
+      margin: 0 auto 2.5rem;
+    }
+    .stat-card {
+      padding: 1rem;
+      border-radius: 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      text-align: center;
+    }
+    .stat-card .stat-val {
+      font-size: 1.5rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      line-height: 1;
+      margin-bottom: .25rem;
+    }
+    .stat-card .stat-lbl {
+      font-size: .75rem;
+      color: var(--text-muted);
+    }
+
+    /* Timeline sparkline (CSS-only) */
+    .latency-bar-wrap {
+      display: flex;
+      align-items: flex-end;
+      gap: 2px;
+      height: 22px;
+    }
+    .latency-bar-wrap span {
+      width: 5px;
+      border-radius: 2px 2px 0 0;
+      background: var(--accent);
+      opacity: .6;
+      transition: height .3s, background .3s;
+    }
+
+    /* CSS variable fallbacks — alias style.css tokens + status-specific colours */
+    :root {
+      --green:        #22c55e;
+      --yellow:       #eab308;
+      --red:          #ef4444;
+      --surface:      var(--bg2, #161b22);
+      --surface-hover:var(--bg3, #21262d);
+      --text-muted:   var(--text2, #8b949e);
+      --font-mono:    var(--mono, monospace);
+      --accent-subtle:rgba(249,115,22,.3);
+    }
+    [data-theme="light"] {
+      --green:  #16a34a;
+      --yellow: #ca8a04;
+      --red:    #dc2626;
+    }
+
+    /* Container override for status page */
+    .container { max-width: 960px; margin: 0 auto; padding: 0 1.5rem 3rem; }
+  </style>
+</head>
+<body>
+
+<!-- ── Navigation ─────────────────────────────────────── -->
+<nav>
+  <a class="nav-logo" href="/"><div class="dot"></div>Chat<span style="color:var(--accent)">API</span></a>
+  <div class="nav-links">
+    <a href="/">Home</a>
+    <a href="/quickstart.html">Quick Start</a>
+    <a href="/playground.html">Playground</a>
+    <a href="/api.html">API</a>
+    <a href="/docs.html">Docs</a>
+    <a href="/status.html">Status</a>
+    <a href="/swagger">Swagger <span class="nav-badge">UI</span></a>
+  </div>
+  <div class="nav-actions">
+    <button class="theme-toggle" id="theme-toggle" title="Toggle theme" aria-label="Toggle theme">
+      <span class="icon-sun"><i data-lucide="sun" class="icon-md"></i></span>
+      <span class="icon-moon"><i data-lucide="moon" class="icon-md"></i></span>
+    </button>
+    <button class="hamburger" id="hamburger" aria-label="Menu" aria-expanded="false">
+      <span class="icon-open"><i data-lucide="menu" class="icon-md"></i></span>
+      <span class="icon-close"><i data-lucide="x" class="icon-md"></i></span>
+    </button>
+  </div>
+</nav>
+
+<!-- MOBILE MENU -->
+<div class="mobile-menu" id="mobile-menu">
+  <a href="/"><i data-lucide="home" class="icon-md"></i> Home</a>
+  <a href="/quickstart.html"><i data-lucide="rocket" class="icon-md"></i> Quick Start</a>
+  <a href="/playground.html"><i data-lucide="terminal" class="icon-md"></i> Playground</a>
+  <a href="/api.html"><i data-lucide="layers" class="icon-md"></i> API</a>
+  <a href="/docs.html"><i data-lucide="book-open" class="icon-md"></i> Docs</a>
+  <a href="/status.html"><i data-lucide="activity" class="icon-md"></i> Status</a>
+  <a href="/swagger"><i data-lucide="zap" class="icon-md"></i> Swagger UI</a>
+</div>
+
+<!-- ── Hero ───────────────────────────────────────────── -->
+<div class="status-hero">
+  <h1>API Status</h1>
+  <p>Live health checks across all major endpoints</p>
+  <div class="health-badge loading" id="overall-badge">
+    <span class="badge-dot pulse"></span>
+    <span id="overall-text">Checking…</span>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- ── Refresh bar ──────────────────────────────────── -->
+  <div class="refresh-bar">
+    <div class="refresh-bar-left">
+      <i data-lucide="clock" style="width:14px;height:14px;opacity:.6"></i>
+      <span>Auto-refresh in <strong id="countdown">30</strong>s</span>
+      <span id="last-checked" style="margin-left:.5rem"></span>
+    </div>
+    <button class="refresh-btn" id="refresh-btn">
+      <i data-lucide="refresh-cw" style="width:13px;height:13px"></i>
+      Refresh now
+    </button>
+  </div>
+
+  <!-- ── Summary stats ────────────────────────────────── -->
+  <div class="stats-strip" id="stats-strip">
+    <div class="stat-card">
+      <div class="stat-val" id="stat-ok">–</div>
+      <div class="stat-lbl">Endpoints up</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val" id="stat-total">–</div>
+      <div class="stat-lbl">Total checks</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val" id="stat-avg">–</div>
+      <div class="stat-lbl">Avg latency</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val" id="stat-p95">–</div>
+      <div class="stat-lbl">P95 latency</div>
+    </div>
+  </div>
+
+  <!-- ── Core endpoints ───────────────────────────────── -->
+  <div class="status-section">
+    <div class="status-section-title">Core &amp; Auth</div>
+    <div class="check-list" id="checks-core"></div>
+  </div>
+
+  <!-- ── Messages ─────────────────────────────────────── -->
+  <div class="status-section">
+    <div class="status-section-title">Messages</div>
+    <div class="check-list" id="checks-messages"></div>
+  </div>
+
+  <!-- ── Rooms ─────────────────────────────────────────── -->
+  <div class="status-section">
+    <div class="status-section-title">Rooms</div>
+    <div class="check-list" id="checks-rooms"></div>
+  </div>
+
+  <!-- ── Users ─────────────────────────────────────────── -->
+  <div class="status-section">
+    <div class="status-section-title">Users</div>
+    <div class="check-list" id="checks-users"></div>
+  </div>
+
+  <!-- ── WebSocket ─────────────────────────────────────── -->
+  <div class="status-section">
+    <div class="status-section-title">WebSocket (SignalR)</div>
+    <div class="check-list">
+      <div class="ws-card" id="ws-card">
+        <span class="check-indicator loading" id="ws-dot"></span>
+        <span><strong>/hubs/chat</strong> — SignalR hub</span>
+        <span class="ws-state connecting" id="ws-state">Connecting…</span>
+        <span class="ws-detail" id="ws-detail"></span>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<footer>
+  <p>Chat API v1 &nbsp;·&nbsp; .NET 9 &nbsp;·&nbsp;
+    <a href="/">Home</a> &nbsp;·&nbsp;
+    <a href="/quickstart.html">Quick Start</a> &nbsp;·&nbsp;
+    <a href="/playground.html">Playground</a> &nbsp;·&nbsp;
+    <a href="/api.html">API</a> &nbsp;·&nbsp;
+    <a href="/docs.html">Docs</a> &nbsp;·&nbsp;
+    <a href="/status.html">Status</a> &nbsp;·&nbsp;
+    <a href="/swagger">Swagger UI</a>
+  </p>
+</footer>
+
+<script>
+// ── Config ────────────────────────────────────────────────
+// Checks without a roomId placeholder run as-is.
+// Checks with {ROOM_ID} are skipped gracefully if no room is available (show warn).
+const CHECKS = {
+  core: [
+    { name: 'Health check',       method: 'GET', path: '/health',             auth: false },
+    { name: 'API root (Swagger)', method: 'GET', path: '/swagger/index.html', auth: false, expectedRange: [200,399] },
+    { name: 'Audit log',          method: 'GET', path: '/api/audit',          auth: true  },
+  ],
+  messages: [
+    { name: 'List messages',      method: 'GET', path: '/api/messages/room/{ROOM_ID}',               auth: true, needsRoom: true },
+    { name: 'Message search',     method: 'GET', path: '/api/messages/room/{ROOM_ID}/search?q=hi',   auth: true, needsRoom: true },
+    { name: 'Pinned messages',    method: 'GET', path: '/api/messages/room/{ROOM_ID}/pinned',         auth: true, needsRoom: true },
+    { name: 'Unread count',       method: 'GET', path: '/api/messages/room/{ROOM_ID}/unread',         auth: true, needsRoom: true },
+  ],
+  rooms: [
+    { name: 'List rooms',         method: 'GET', path: '/api/rooms',           auth: true },
+    { name: 'Room search',        method: 'GET', path: '/api/rooms/search',    auth: true },
+    { name: 'Room categories',    method: 'GET', path: '/api/rooms/categories',auth: true },
+    { name: 'Room tags',          method: 'GET', path: '/api/rooms/tags',      auth: true },
+  ],
+  users: [
+    { name: 'List users',         method: 'GET', path: '/api/users',          auth: true },
+    { name: 'Online users',       method: 'GET', path: '/api/users/online',   auth: true },
+    { name: 'User search',        method: 'GET', path: '/api/users/search',   auth: true },
+    { name: 'Blocked users',      method: 'GET', path: '/api/users/blocked',  auth: true },
+  ],
+};
+
+// ── State ────────────────────────────────────────────────
+let token   = null;
+let roomId  = null;   // a valid room ID fetched after login
+let results = {};
+let countdown = 30;
+let countdownTimer;
+let latencyHistory = [];
+
+// ── DOM helpers ──────────────────────────────────────────
+const $ = id => document.getElementById(id);
+const fmt = ms => ms == null ? '—' : ms < 1000 ? `${ms}ms` : `${(ms/1000).toFixed(1)}s`;
+const latClass = ms => !ms ? '' : ms < 200 ? 'fast' : ms < 600 ? 'med' : 'slow';
+
+function buildRow(check) {
+  const key = check.path;
+  const row = document.createElement('div');
+  row.className = 'check-row';
+  row.id = 'row-' + btoa(key).replace(/[^a-z0-9]/gi,'');
+  row.innerHTML = `
+    <span class="check-indicator loading" id="dot-${row.id}"></span>
+    <span class="check-name">${check.name}</span>
+    <span class="check-path">${check.method} ${check.path}</span>
+    <span class="check-latency" id="lat-${row.id}">—</span>
+    <span class="check-status-text loading" id="txt-${row.id}">…</span>
+  `;
+  return row;
+}
+
+function updateRow(rowEl, state, latencyMs, statusCode) {
+  const id  = rowEl.id;
+  const dot = $(`dot-${id}`);
+  const lat = $(`lat-${id}`);
+  const txt = $(`txt-${id}`);
+  dot.className = `check-indicator ${state}`;
+  lat.className = `check-latency ${latClass(latencyMs)}`;
+  lat.textContent = fmt(latencyMs);
+  txt.className   = `check-status-text ${state}`;
+  txt.textContent = statusCode ? String(statusCode) : (state === 'loading' ? '…' : state.toUpperCase());
+}
+
+// ── Bootstrap rows ───────────────────────────────────────
+function bootstrap() {
+  for (const [section, checks] of Object.entries(CHECKS)) {
+    const container = $(`checks-${section}`);
+    for (const check of checks) {
+      const row = buildRow(check);
+      check._rowEl = row;
+      container.appendChild(row);
+    }
+  }
+}
+
+// ── Token acquisition (seeded guest login) ───────────────
+async function acquireToken() {
+  const credentials = [
+    { usernameOrEmail: 'alice', password: 'password123' },
+    { usernameOrEmail: 'bob',   password: 'password123' },
+    { usernameOrEmail: 'admin', password: 'password123' },
+  ];
+  for (const cred of credentials) {
+    try {
+      const r = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(cred),
+      });
+      if (r.ok) {
+        const d = await r.json();
+        const t = d?.data?.accessToken ?? d?.data?.token ?? d?.accessToken ?? d?.token;
+        if (t) { token = t; return true; }
+      }
+    } catch { /* try next */ }
+  }
+  return false;
+}
+
+// ── Fetch a real room ID after login ─────────────────────
+async function fetchRoomId() {
+  if (!token) return;
+  try {
+    const r = await fetch('/api/rooms', {
+      headers: { Authorization: `Bearer ${token}` },
+      signal: AbortSignal.timeout(5000),
+    });
+    if (r.ok) {
+      const d = await r.json();
+      const rooms = d?.data ?? [];
+      if (rooms.length > 0) roomId = rooms[0].id ?? rooms[0]._id ?? null;
+    }
+  } catch { /* ignore */ }
+}
+
+// ── Run a single check ───────────────────────────────────
+async function runCheck(check) {
+  // Resolve {ROOM_ID} placeholder
+  let path = check.path;
+  if (check.needsRoom) {
+    if (!roomId) return { state: 'warn', ms: null, status: null, note: 'no room' };
+    path = path.replace('{ROOM_ID}', roomId);
+  }
+
+  const headers = {};
+  if (check.auth && token) headers['Authorization'] = `Bearer ${token}`;
+  const t0 = performance.now();
+  try {
+    const r = await fetch(path, { method: check.method, headers, signal: AbortSignal.timeout(8000) });
+    const ms = Math.round(performance.now() - t0);
+    const range = check.expectedRange ?? [200, 399];
+    const ok = r.status >= range[0] && r.status <= range[1];
+    // 401 with no token = server reachable but auth needed → warn
+    const isAuthMiss = check.auth && !token && r.status === 401;
+    const state = isAuthMiss ? 'warn' : ok ? 'ok' : 'down';
+    return { state, ms, status: r.status };
+  } catch {
+    const ms = Math.round(performance.now() - t0);
+    return { state: 'down', ms, status: null };
+  }
+}
+
+// ── Run all checks ───────────────────────────────────────
+async function runAll() {
+  // Mark all loading
+  for (const checks of Object.values(CHECKS))
+    for (const c of checks) updateRow(c._rowEl, 'loading', null, null);
+
+  $('overall-badge').className = 'health-badge loading';
+  $('overall-badge').querySelector('.badge-dot').className = 'badge-dot pulse';
+  $('overall-text').textContent = 'Checking…';
+
+  if (!token) await acquireToken();
+  if (token && !roomId) await fetchRoomId();
+
+  const allChecks = Object.values(CHECKS).flat();
+  const promises  = allChecks.map(c => runCheck(c).then(res => ({ c, res })));
+  const settled   = await Promise.allSettled(promises);
+
+  let okCount = 0, totalMs = 0, allMs = [];
+  for (const s of settled) {
+    if (s.status !== 'fulfilled') continue;
+    const { c, res } = s.value;
+    updateRow(c._rowEl, res.state, res.ms, res.status);
+    if (res.state === 'ok') okCount++;
+    if (res.ms != null) { totalMs += res.ms; allMs.push(res.ms); }
+  }
+
+  const total = allChecks.length;
+  const avgMs = allMs.length ? Math.round(totalMs / allMs.length) : null;
+  const p95Ms = allMs.length
+    ? allMs.sort((a,b)=>a-b)[Math.floor(allMs.length * .95)] : null;
+
+  $('stat-ok').textContent    = okCount;
+  $('stat-total').textContent = total;
+  $('stat-avg').textContent   = fmt(avgMs);
+  $('stat-p95').textContent   = fmt(p95Ms);
+
+  const overallState = okCount === total ? 'ok' : okCount > total * 0.5 ? 'warn' : 'down';
+  const badge = $('overall-badge');
+  badge.className = `health-badge ${overallState}`;
+  badge.querySelector('.badge-dot').className = 'badge-dot';
+  $('overall-text').textContent =
+    overallState === 'ok'   ? `All ${total} systems operational` :
+    overallState === 'warn' ? `${total - okCount} of ${total} degraded` :
+                              `${total - okCount} of ${total} down`;
+
+  const now = new Date();
+  $('last-checked').textContent = `Last checked: ${now.toLocaleTimeString()}`;
+}
+
+// ── WebSocket health ──────────────────────────────────────
+function initWs() {
+  const protocol = location.protocol === 'https:' ? 'wss' : 'ws';
+  const url = `${protocol}://${location.host}/hubs/chat`;
+  const dot   = $('ws-dot');
+  const state = $('ws-state');
+  const detail= $('ws-detail');
+
+  let ws;
+  function connect() {
+    try {
+      ws = new WebSocket(url);
+    } catch {
+      dot.className   = 'check-indicator down';
+      state.className = 'ws-state disconnected';
+      state.textContent = 'Unavailable';
+      detail.textContent = 'WebSocket error';
+      return;
+    }
+    const t0 = performance.now();
+    ws.onopen = () => {
+      const ms = Math.round(performance.now() - t0);
+      dot.className   = 'check-indicator ok';
+      state.className = 'ws-state connected';
+      state.textContent = 'Connected';
+      detail.textContent = `Handshake: ${fmt(ms)}`;
+    };
+    ws.onerror = () => {
+      dot.className   = 'check-indicator warn';
+      state.className = 'ws-state connecting';
+      state.textContent = 'WS Error';
+      detail.textContent = 'Falling back — SignalR may use SSE/LongPoll';
+    };
+    ws.onclose = () => {
+      dot.className   = 'check-indicator down';
+      state.className = 'ws-state disconnected';
+      state.textContent = 'Disconnected';
+      detail.textContent = 'Closed';
+      setTimeout(connect, 10000);
+    };
+  }
+  connect();
+}
+
+// ── Countdown & auto-refresh ──────────────────────────────
+function startCountdown() {
+  clearInterval(countdownTimer);
+  countdown = 30;
+  $('countdown').textContent = countdown;
+  countdownTimer = setInterval(() => {
+    countdown--;
+    $('countdown').textContent = countdown;
+    if (countdown <= 0) {
+      clearInterval(countdownTimer);
+      runAll().then(startCountdown);
+    }
+  }, 1000);
+}
+
+// ── Theme toggle ─────────────────────────────────────────
+(function() {
+  const saved = localStorage.getItem('theme');
+  if (saved) document.documentElement.setAttribute('data-theme', saved);
+  else if (window.matchMedia('(prefers-color-scheme: light)').matches)
+    document.documentElement.setAttribute('data-theme', 'light');
+})();
+document.getElementById('theme-toggle')?.addEventListener('click', () => {
+  const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('theme', next);
+});
+
+// ── Init ─────────────────────────────────────────────────
+bootstrap();
+initWs();
+runAll().then(startCountdown);
+
+document.getElementById('refresh-btn').addEventListener('click', () => {
+  clearInterval(countdownTimer);
+  runAll().then(startCountdown);
+});
+
+lucide.createIcons();
+</script>
+</body>
+</html>

@@ -319,6 +319,98 @@ namespace apiContact.Data.Repositories
             return b.And(filters);
         }
 
+        // ── Direct rooms ──────────────────────────────────────────
+
+        public async Task<ChatRoom?> GetDirectRoomAsync(string userId1, string userId2)
+        {
+            if (_db.IsInMemory)
+                return _db.Rooms.Values.FirstOrDefault(r =>
+                    r.Type == apiContact.Models.Enums.RoomType.Direct && !r.IsDeleted &&
+                    r.MemberIds.Contains(userId1) && r.MemberIds.Contains(userId2));
+            return await _col!.Find(r =>
+                r.Type == apiContact.Models.Enums.RoomType.Direct && !r.IsDeleted &&
+                r.MemberIds.Contains(userId1) && r.MemberIds.Contains(userId2))
+                .FirstOrDefaultAsync();
+        }
+
+        // ── Invite codes ──────────────────────────────────────────
+
+        public async Task<ChatRoom?> GetByInviteCodeAsync(string code)
+        {
+            var now = DateTime.UtcNow;
+            if (_db.IsInMemory)
+                return _db.Rooms.Values.FirstOrDefault(r =>
+                    r.InviteCode == code && !r.IsDeleted &&
+                    (r.InviteExpiresAt == null || r.InviteExpiresAt > now));
+            return await _col!.Find(r =>
+                r.InviteCode == code && !r.IsDeleted &&
+                (r.InviteExpiresAt == null || r.InviteExpiresAt > now))
+                .FirstOrDefaultAsync();
+        }
+
+        public async Task SetInviteCodeAsync(string roomId, string? code, DateTime? expiresAt)
+        {
+            if (_db.IsInMemory)
+            {
+                if (!_db.Rooms.TryGetValue(roomId, out var room)) return;
+                room.InviteCode      = code;
+                room.InviteExpiresAt = expiresAt;
+                room.UpdatedAt       = DateTime.UtcNow;
+                return;
+            }
+            await _col!.UpdateOneAsync(r => r.Id == roomId,
+                Builders<ChatRoom>.Update
+                    .Set(r => r.InviteCode,      code)
+                    .Set(r => r.InviteExpiresAt, expiresAt)
+                    .Set(r => r.UpdatedAt,        DateTime.UtcNow));
+        }
+
+        // ── Statistics ────────────────────────────────────────────
+
+        public async Task<apiContact.Models.Dtos.RoomStatsDto> GetStatsAsync(string roomId)
+        {
+            if (_db.IsInMemory)
+            {
+                var room = _db.Rooms.GetValueOrDefault(roomId);
+                var msgs = _db.Messages.Values
+                    .Where(m => m.RoomId == roomId && !m.IsDeleted)
+                    .ToList();
+                return new apiContact.Models.Dtos.RoomStatsDto
+                {
+                    RoomId         = roomId,
+                    MemberCount    = room?.MemberIds.Count ?? 0,
+                    MessageCount   = msgs.Count,
+                    PinnedCount    = msgs.Count(m => m.IsPinned),
+                    LastActivityAt = msgs.OrderByDescending(m => m.Timestamp)
+                                        .FirstOrDefault()?.Timestamp,
+                };
+            }
+
+            var msgCol = _db.GetCollection<apiContact.Models.Entities.Message>("messages");
+            var baseFilter = Builders<apiContact.Models.Entities.Message>.Filter.And(
+                Builders<apiContact.Models.Entities.Message>.Filter.Eq(m => m.RoomId,    roomId),
+                Builders<apiContact.Models.Entities.Message>.Filter.Eq(m => m.IsDeleted, false));
+            var pinFilter = Builders<apiContact.Models.Entities.Message>.Filter.And(
+                baseFilter,
+                Builders<apiContact.Models.Entities.Message>.Filter.Eq(m => m.IsPinned,  true));
+
+            var msgCount = (int)await msgCol!.CountDocumentsAsync(baseFilter);
+            var pinCount = (int)await msgCol!.CountDocumentsAsync(pinFilter);
+            var lastMsg  = await msgCol!.Find(baseFilter)
+                                .SortByDescending(m => m.Timestamp).Limit(1)
+                                .FirstOrDefaultAsync();
+            var r = await _col!.Find(x => x.Id == roomId).FirstOrDefaultAsync();
+
+            return new apiContact.Models.Dtos.RoomStatsDto
+            {
+                RoomId         = roomId,
+                MemberCount    = r?.MemberIds.Count ?? 0,
+                MessageCount   = msgCount,
+                PinnedCount    = pinCount,
+                LastActivityAt = lastMsg?.Timestamp,
+            };
+        }
+
         private static SortDefinition<ChatRoom> BuildMongoRoomSort(RoomSearchQuery q) =>
             (q.SortBy, q.Direction) switch
             {

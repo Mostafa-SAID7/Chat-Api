@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quick Start · Chat API</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Nunito:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/style.css" />
+  <script>
+    (function(){
+      var t=localStorage.getItem('chatapi-theme')||
+        (window.matchMedia('(prefers-color-scheme:light)').matches?'light':'dark');
+      document.documentElement.setAttribute('data-theme',t);
+    })();
+  </script>
+</head>
+<body>
+
+<!-- PAGE LOAD SHIMMER SKELETON -->
+<div id="page-loader" aria-hidden="true">
+  <div class="sk-nav">
+    <div class="sk sk-logo-pill"></div>
+    <div class="sk-nav-links">
+      <div class="sk sk-navlink"></div>
+      <div class="sk sk-navlink"></div>
+      <div class="sk sk-navlink"></div>
+      <div class="sk sk-navlink"></div>
+    </div>
+    <div class="sk sk-circle"></div>
+  </div>
+  <div class="sk-hero">
+    <div class="sk sk-badge-pill"></div>
+    <div class="sk sk-h1a"></div>
+    <div class="sk sk-h1b"></div>
+    <div class="sk sk-sub1"></div>
+    <div class="sk sk-sub2"></div>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="/"><div class="dot"></div>Chat<span style="color:var(--accent)">API</span></a>
+  <div class="nav-links">
+    <a href="/">Home</a>
+    <a href="/quickstart.html">Quick Start</a>
+    <a href="/playground.html">Playground</a>
+    <a href="/api.html">API</a>
+    <a href="/docs.html">Docs</a>
+    <a href="/status.html">Status</a>
+    <a href="/swagger">Swagger <span class="nav-badge">UI</span></a>
+  </div>
+  <div class="nav-actions">
+    <button class="theme-toggle" id="theme-toggle" title="Toggle theme" aria-label="Toggle theme">
+      <span class="icon-sun"><i data-lucide="sun" class="icon-md"></i></span>
+      <span class="icon-moon"><i data-lucide="moon" class="icon-md"></i></span>
+    </button>
+    <button class="hamburger" id="hamburger" aria-label="Menu" aria-expanded="false">
+      <span class="icon-open"><i data-lucide="menu" class="icon-md"></i></span>
+      <span class="icon-close"><i data-lucide="x" class="icon-md"></i></span>
+    </button>
+  </div>
+</nav>
+
+<!-- MOBILE MENU -->
+<div class="mobile-menu" id="mobile-menu">
+  <a href="/"><i data-lucide="home" class="icon-md"></i> Home</a>
+  <a href="/quickstart.html"><i data-lucide="rocket" class="icon-md"></i> Quick Start</a>
+  <a href="/playground.html"><i data-lucide="terminal" class="icon-md"></i> Playground</a>
+  <a href="/api.html"><i data-lucide="layers" class="icon-md"></i> API</a>
+  <a href="/docs.html"><i data-lucide="book-open" class="icon-md"></i> Docs</a>
+  <a href="/status.html"><i data-lucide="activity" class="icon-md"></i> Status</a>
+  <a href="/swagger"><i data-lucide="zap" class="icon-md"></i> Swagger UI</a>
+</div>
+
+<!-- PAGE HERO -->
+<div class="page-hero">
+  <div class="page-hero-inner">
+    <div class="hero-tag"><i data-lucide="rocket" class="icon-sm"></i> QUICK START</div>
+    <h1>Get Started in Minutes</h1>
+    <p>Authenticate with a demo account, connect to the SignalR hub, and send your first real-time message — three steps, zero configuration.</p>
+    <div class="page-hero-actions">
+      <a href="/playground.html" class="btn btn-primary">
+        <i data-lucide="terminal" class="icon-sm"></i> Try in Playground
+      </a>
+      <a href="/docs.html" class="btn btn-outline">
+        <i data-lucide="book-open" class="icon-sm"></i> Full API Docs
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="section-wrap">
+  <div class="section-inner">
+
+    <!-- STEPS -->
+    <div class="section-header reveal">
+      <h2>Three Steps to First Message</h2>
+      <p>Demo credentials (<code>alice</code> / <code>password123</code>) are seeded automatically — no account setup needed</p>
+    </div>
+
+    <div class="qs-steps reveal">
+
+      <div class="qs-step">
+        <div class="qs-step-num">1</div>
+        <div class="qs-step-body">
+          <h4>Login and receive your JWT access token</h4>
+          <div class="code-block" style="position:relative"><button class="copy-btn">Copy</button>
+<span class="comment">// POST /api/auth/login  (demo credentials work out of the box)</span>
+<span class="key">const</span> res  = <span class="key">await</span> fetch(<span class="str">"/api/auth/login"</span>, {
+  method: <span class="str">"POST"</span>,
+  headers: { <span class="str">"Content-Type"</span>: <span class="str">"application/json"</span> },
+  body: JSON.stringify({ usernameOrEmail: <span class="str">"alice"</span>, password: <span class="str">"password123"</span> })
+});
+<span class="key">const</span> { data } = <span class="key">await</span> res.json();
+<span class="key">const</span> token = data.accessToken; <span class="comment">// keep this — used in all protected requests</span></div>
+        </div>
+      </div>
+
+      <div class="qs-step">
+        <div class="qs-step-num">2</div>
+        <div class="qs-step-body">
+          <h4>Connect to the SignalR WebSocket hub</h4>
+          <div class="code-block" style="position:relative"><button class="copy-btn">Copy</button>
+<span class="comment">// npm install @microsoft/signalr</span>
+<span class="key">import</span> * <span class="key">as</span> signalR <span class="key">from</span> <span class="str">"@microsoft/signalr"</span>;
+
+<span class="key">const</span> conn = <span class="key">new</span> signalR.HubConnectionBuilder()
+  .withUrl(<span class="str">`/hubs/chat?access_token=<span class="key">${token}</span>`</span>)
+  .withAutomaticReconnect()
+  .build();
+
+conn.on(<span class="str">"ReceiveMessage"</span>, msg =&gt; console.log(<span class="str">`[${msg.senderName}] ${msg.content}`</span>));
+<span class="key">await</span> conn.start();
+<span class="key">await</span> conn.invoke(<span class="str">"JoinRoom"</span>, <span class="str">"&lt;room-guid&gt;"</span>);</div>
+        </div>
+      </div>
+
+      <div class="qs-step">
+        <div class="qs-step-num">3</div>
+        <div class="qs-step-body">
+          <h4>Send a message — auto-broadcast to all room members</h4>
+          <div class="code-block" style="position:relative"><button class="copy-btn">Copy</button>
+<span class="comment">// POST /api/messages — triggers ReceiveMessage on all connected clients in the room</span>
+<span class="key">await</span> fetch(<span class="str">"/api/messages"</span>, {
+  method: <span class="str">"POST"</span>,
+  headers: {
+    <span class="str">"Content-Type"</span>: <span class="str">"application/json"</span>,
+    <span class="str">"Authorization"</span>: <span class="str">`Bearer <span class="key">${token}</span>`</span>
+  },
+  body: JSON.stringify({ roomId: <span class="str">"&lt;room-guid&gt;"</span>, content: <span class="str">"Hello, world!"</span> })
+});</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- REFRESH TOKENS -->
+    <div class="section-header reveal" style="margin-top:3.5rem">
+      <h2>Token Management</h2>
+      <p>Access tokens are short-lived — use the refresh flow to renew silently without prompting the user</p>
+    </div>
+
+    <div class="qs-steps reveal">
+      <div class="qs-step">
+        <div class="qs-step-num" style="background:rgba(167,139,250,.1);border-color:rgba(167,139,250,.3);color:var(--accent4)">→</div>
+        <div class="qs-step-body">
+          <h4>Silently refresh an expiring access token</h4>
+          <div class="code-block" style="position:relative"><button class="copy-btn">Copy</button>
+<span class="comment">// POST /api/auth/refresh — rotates both tokens</span>
+<span class="key">const</span> r = <span class="key">await</span> fetch(<span class="str">"/api/auth/refresh"</span>, {
+  method: <span class="str">"POST"</span>,
+  headers: { <span class="str">"Content-Type"</span>: <span class="str">"application/json"</span> },
+  body: JSON.stringify({ refreshToken: data.refreshToken })
+});
+<span class="key">const</span> renewed = (<span class="key">await</span> r.json()).data;
+<span class="comment">// renewed.accessToken and renewed.refreshToken are your new pair</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WEBSOCKET EVENTS -->
+    <div class="section-header reveal" style="margin-top:3.5rem">
+      <h2>WebSocket Events</h2>
+      <p>Real-time bidirectional events via SignalR at <code>/hubs/chat</code> · Pass JWT in the <code>access_token</code> query param</p>
+    </div>
+
+    <div class="ws-flow-grid reveal">
+      <div class="ws-col">
+        <div class="ws-col-title"><i data-lucide="upload" class="icon-sm"></i> Client → Server (Invoke)</div>
+        <div class="ws-event ws-event-invoke"><div class="ws-event-dot"></div> JoinRoom(roomId)</div>
+        <div class="ws-event ws-event-invoke"><div class="ws-event-dot"></div> LeaveRoom(roomId)</div>
+        <div class="ws-event ws-event-invoke"><div class="ws-event-dot"></div> Typing(roomId)</div>
+        <div class="ws-event ws-event-invoke"><div class="ws-event-dot"></div> StopTyping(roomId)</div>
+        <div class="ws-event ws-event-invoke"><div class="ws-event-dot"></div> Ping()</div>
+      </div>
+      <div class="ws-col-divider">⟵&nbsp;⟶</div>
+      <div class="ws-col">
+        <div class="ws-col-title"><i data-lucide="download" class="icon-sm"></i> Server → Client (On)</div>
+        <div class="ws-event ws-event-on"><div class="ws-event-dot"></div> ReceiveMessage</div>
+        <div class="ws-event ws-event-on"><div class="ws-event-dot"></div> MessageEdited · MessageDeleted</div>
+        <div class="ws-event ws-event-on"><div class="ws-event-dot"></div> UserTyping · UserStoppedTyping</div>
+        <div class="ws-event ws-event-on"><div class="ws-event-dot"></div> UserOnline · UserOffline</div>
+        <div class="ws-event ws-event-on"><div class="ws-event-dot"></div> UserJoinedRoom · UserLeftRoom</div>
+        <div class="ws-event ws-event-on"><div class="ws-event-dot"></div> Pong</div>
+      </div>
+    </div>
+
+    <!-- NEXT STEPS -->
+    <div class="section-header reveal" style="margin-top:3.5rem">
+      <h2>What's Next?</h2>
+    </div>
+    <div class="grid-3 reveal">
+      <a href="/playground.html" class="explore-card">
+        <div class="card-icon ci-orange" style="margin-bottom:.6rem"><i data-lucide="terminal" class="icon-lg"></i></div>
+        <h3>API Playground</h3>
+        <p>Send live requests to every endpoint in the browser — login once, test everything.</p>
+        <div class="explore-card-footer"><i data-lucide="arrow-right" class="icon-sm"></i> Open Playground</div>
+      </a>
+      <a href="/api.html" class="explore-card">
+        <div class="card-icon ci-purple" style="margin-bottom:.6rem"><i data-lucide="layers" class="icon-lg"></i></div>
+        <h3>API Overview</h3>
+        <p>Browse all route groups at a glance — Auth, Users, Rooms, Messages, Files, and more.</p>
+        <div class="explore-card-footer"><i data-lucide="arrow-right" class="icon-sm"></i> View routes</div>
+      </a>
+      <a href="/docs.html" class="explore-card">
+        <div class="card-icon ci-amber" style="margin-bottom:.6rem"><i data-lucide="book-open" class="icon-lg"></i></div>
+        <h3>Full API Docs</h3>
+        <p>Deep-dive into parameters, schemas, error codes, and auth flows for every endpoint.</p>
+        <div class="explore-card-footer"><i data-lucide="arrow-right" class="icon-sm"></i> Read docs</div>
+      </a>
+    </div>
+
+  </div>
+</div>
+
+<footer>
+  <p>Chat API v1 &nbsp;·&nbsp; .NET 9 &nbsp;·&nbsp;
+    <a href="/">Home</a> &nbsp;·&nbsp;
+    <a href="/quickstart.html">Quick Start</a> &nbsp;·&nbsp;
+    <a href="/playground.html">Playground</a> &nbsp;·&nbsp;
+    <a href="/api.html">API</a> &nbsp;·&nbsp;
+    <a href="/docs.html">Docs</a> &nbsp;·&nbsp;
+    <a href="/status.html">Status</a> &nbsp;·&nbsp;
+    <a href="/swagger">Swagger UI</a>
+  </p>
+</footer>
+
+<button class="scroll-top" id="scroll-top" aria-label="Scroll to top">
+  <i data-lucide="arrow-up" class="icon-md"></i>
+</button>
+
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<script src="/js/main.js"></script>
+</body>
+</html>

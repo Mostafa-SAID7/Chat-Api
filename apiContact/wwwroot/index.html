@@ -18,23 +18,53 @@
 </head>
 <body>
 
-<!-- PAGE LOADER -->
+<!-- PAGE LOAD SHIMMER SKELETON -->
 <div id="page-loader" aria-hidden="true">
-  <div class="pl-logo">
-    <div class="pl-dot"></div>
-    Chat API
-    <div class="pl-ring"></div>
+  <div class="sk-nav">
+    <div class="sk sk-logo-pill"></div>
+    <div class="sk-nav-links">
+      <div class="sk sk-navlink"></div>
+      <div class="sk sk-navlink"></div>
+      <div class="sk sk-navlink"></div>
+      <div class="sk sk-navlink"></div>
+    </div>
+    <div class="sk sk-circle"></div>
+  </div>
+  <div class="sk-hero">
+    <div class="sk sk-badge-pill"></div>
+    <div class="sk sk-h1a"></div>
+    <div class="sk sk-h1b"></div>
+    <div class="sk sk-sub1"></div>
+    <div class="sk sk-sub2"></div>
+    <div class="sk sk-sub3"></div>
+    <div class="sk-btns">
+      <div class="sk sk-btn-pri"></div>
+      <div class="sk sk-btn-sec"></div>
+    </div>
+  </div>
+  <div class="sk-statusbar">
+    <div class="sk sk-pill-md"></div>
+    <div class="sk sk-pill-lg"></div>
+    <div class="sk sk-pill-md"></div>
+    <div class="sk sk-pill-sm"></div>
+    <div class="sk sk-pill-md"></div>
+    <div class="sk sk-pill-lg"></div>
+    <div class="sk sk-pill-md"></div>
+    <div class="sk sk-pill-sm"></div>
   </div>
 </div>
 
 <!-- NAV -->
 <nav>
-  <a class="nav-logo" href="/"><div class="dot"></div>Chat API</a>
+  <a class="nav-logo" href="/"><div class="dot"></div>Chat<span style="color:var(--accent)">API</span></a>
   <div class="nav-links">
-    <a href="/" class="active">Home</a>
+    <a href="/">Home</a>
+    <a href="/quickstart.html">Quick Start</a>
+    <a href="/playground.html">Playground</a>
+    <a href="/api.html">API</a>
     <a href="/docs.html">Docs</a>
+    <a href="/status.html">Status</a>
     <a href="/swagger">Swagger <span class="nav-badge">UI</span></a>
-    <a href="/health">Health</a>
   </div>
   <div class="nav-actions">
     <button class="theme-toggle" id="theme-toggle" title="Toggle theme" aria-label="Toggle theme">
@@ -50,10 +80,13 @@
 
 <!-- MOBILE MENU -->
 <div class="mobile-menu" id="mobile-menu">
-  <a href="/" class="active"><i data-lucide="home" class="icon-md"></i> Home</a>
+  <a href="/"><i data-lucide="home" class="icon-md"></i> Home</a>
+  <a href="/quickstart.html"><i data-lucide="rocket" class="icon-md"></i> Quick Start</a>
+  <a href="/playground.html"><i data-lucide="terminal" class="icon-md"></i> Playground</a>
+  <a href="/api.html"><i data-lucide="layers" class="icon-md"></i> API</a>
   <a href="/docs.html"><i data-lucide="book-open" class="icon-md"></i> Docs</a>
+  <a href="/status.html"><i data-lucide="activity" class="icon-md"></i> Status</a>
   <a href="/swagger"><i data-lucide="zap" class="icon-md"></i> Swagger UI</a>
-  <a href="/health"><i data-lucide="activity" class="icon-md"></i> Health</a>
 </div>
 
 <!-- HERO -->
@@ -66,21 +99,21 @@
   <p class="fade-up fade-up-3">
     A fully-featured chat backend built on ASP.NET Core 9 with SignalR WebSockets,
     MongoDB persistence, Redis pub/sub, JWT auth, blob file storage, two-tier caching,
-    structured audit logging, and hardened security. REST + Realtime in one API.
+    structured audit logging, and hardened security. REST&nbsp;+&nbsp;Realtime in one API.
   </p>
   <div class="hero-actions fade-up fade-up-4">
-    <a href="/swagger" class="btn btn-primary">
-      <i data-lucide="zap" class="icon-sm"></i> Explore Swagger
+    <a href="/quickstart.html" class="btn btn-primary">
+      <i data-lucide="rocket" class="icon-sm"></i> Quick Start
     </a>
-    <a href="/docs.html" class="btn btn-outline">
-      <i data-lucide="book-open" class="icon-sm"></i> API Reference
+    <a href="/playground.html" class="btn btn-outline">
+      <i data-lucide="terminal" class="icon-sm"></i> Try Playground
     </a>
   </div>
 </div>
 
 <!-- STATUS BAR -->
 <div class="status-bar">
-  <div class="status-item"><div class="status-dot online"></div><span class="badge badge-orange">API Online</span></div>
+  <div class="status-item"><div class="status-dot online"></div><span id="api-status" class="badge badge-orange">API Online</span></div>
   <div class="status-item"><div class="status-dot online"></div> SignalR Active</div>
   <div class="status-item"><div class="status-dot standby"></div> MongoDB Ready</div>
   <div class="status-item"><div class="status-dot standby"></div> Redis Optional</div>
@@ -96,9 +129,9 @@
 
     <!-- STATS -->
     <div class="stats reveal">
-      <div class="stat"><div class="stat-value">9</div><div class="stat-label">API Groups</div></div>
-      <div class="stat"><div class="stat-value">30+</div><div class="stat-label">Endpoints</div></div>
-      <div class="stat"><div class="stat-value">10+</div><div class="stat-label">WS Events</div></div>
+      <div class="stat"><div class="stat-value" data-count="9" data-suffix="">9</div><div class="stat-label">API Groups</div></div>
+      <div class="stat"><div class="stat-value" data-count="40" data-suffix="+">40+</div><div class="stat-label">Endpoints</div></div>
+      <div class="stat"><div class="stat-value" data-count="10" data-suffix="+">10+</div><div class="stat-label">WS Events</div></div>
       <div class="stat"><div class="stat-value">∞</div><div class="stat-label">Scale Ready</div></div>
     </div>
 
@@ -176,100 +209,36 @@
       <span class="tech-chip"><span class="chip-dot" style="background:var(--accent4)"></span>Swagger / OpenAPI</span>
     </div>
 
-    <!-- API OVERVIEW -->
+    <!-- EXPLORE -->
     <div class="section-header reveal" style="margin-top:3.5rem">
-      <h2>API Overview</h2>
-      <p>All routes prefixed with <code>/api</code> · WebSocket hub at <code>/hubs/chat</code></p>
+      <h2>Explore the API</h2>
+      <p>Everything you need to start building — from zero to first message in under a minute</p>
     </div>
-
-    <div class="grid-2 reveal">
-      <div class="endpoint-group">
-        <div class="endpoint-group-title"><i data-lucide="key-round" class="icon-sm"></i> Auth</div>
-        <div class="endpoint-card">
-          <div class="endpoint-header"><span class="method method-post">POST</span><span class="endpoint-path">/api/auth/register</span></div>
-          <div class="endpoint-body"><p>Register a new account. Returns JWT + refresh token.</p></div>
-        </div>
-        <div class="endpoint-card" style="margin-top:.5rem">
-          <div class="endpoint-header"><span class="method method-post">POST</span><span class="endpoint-path">/api/auth/login</span></div>
-          <div class="endpoint-body"><p>Login and receive access + refresh token pair.</p></div>
-        </div>
-        <div class="endpoint-card" style="margin-top:.5rem">
-          <div class="endpoint-header"><span class="method method-post">POST</span><span class="endpoint-path">/api/auth/refresh</span></div>
-          <div class="endpoint-body"><p>Silently renew access token via refresh token rotation.</p></div>
-        </div>
-      </div>
-
-      <div class="endpoint-group">
-        <div class="endpoint-group-title"><i data-lucide="users" class="icon-sm"></i> Users</div>
-        <div class="endpoint-card">
-          <div class="endpoint-header"><span class="method method-get">GET</span><span class="endpoint-path">/api/users</span></div>
-          <div class="endpoint-body"><p>List all users sorted by display name.</p></div>
-        </div>
-        <div class="endpoint-card" style="margin-top:.5rem">
-          <div class="endpoint-header"><span class="method method-patch">PATCH</span><span class="endpoint-path">/api/users/{id}</span></div>
-          <div class="endpoint-body"><p>Partially update a user profile.</p></div>
-        </div>
-        <div class="endpoint-card" style="margin-top:.5rem">
-          <div class="endpoint-header"><span class="method method-post">POST</span><span class="endpoint-path">/api/users/{id}/status</span></div>
-          <div class="endpoint-body"><p>Set online/away/offline — broadcasts via WebSocket.</p></div>
-        </div>
-      </div>
-
-      <div class="endpoint-group">
-        <div class="endpoint-group-title"><i data-lucide="message-square" class="icon-sm"></i> Rooms</div>
-        <div class="endpoint-card">
-          <div class="endpoint-header"><span class="method method-get">GET</span><span class="endpoint-path">/api/rooms</span></div>
-          <div class="endpoint-body"><p>All rooms sorted by latest activity.</p></div>
-        </div>
-        <div class="endpoint-card" style="margin-top:.5rem">
-          <div class="endpoint-header"><span class="method method-post">POST</span><span class="endpoint-path">/api/rooms</span></div>
-          <div class="endpoint-body"><p>Create a Direct / Group / Channel room with auto-slug.</p></div>
-        </div>
-        <div class="endpoint-card" style="margin-top:.5rem">
-          <div class="endpoint-header"><span class="method method-delete">DELETE</span><span class="endpoint-path">/api/rooms/{id}/members/{userId}</span></div>
-          <div class="endpoint-body"><p>Remove a member from a room.</p></div>
-        </div>
-      </div>
-
-      <div class="endpoint-group">
-        <div class="endpoint-group-title"><i data-lucide="mail" class="icon-sm"></i> Messages</div>
-        <div class="endpoint-card">
-          <div class="endpoint-header"><span class="method method-get">GET</span><span class="endpoint-path">/api/messages/room/{roomId}</span></div>
-          <div class="endpoint-body"><p>Paginated history — oldest → newest.</p></div>
-        </div>
-        <div class="endpoint-card" style="margin-top:.5rem">
-          <div class="endpoint-header"><span class="method method-post">POST</span><span class="endpoint-path">/api/messages</span></div>
-          <div class="endpoint-body"><p>Send a message; auto-broadcasts via SignalR.</p></div>
-        </div>
-        <div class="endpoint-card" style="margin-top:.5rem">
-          <div class="endpoint-header"><span class="method method-delete">DELETE</span><span class="endpoint-path">/api/messages/{id}</span></div>
-          <div class="endpoint-body"><p>Soft-delete — content replaced, history preserved.</p></div>
-        </div>
-      </div>
-
-      <div class="endpoint-group">
-        <div class="endpoint-group-title"><i data-lucide="upload" class="icon-sm"></i> Files</div>
-        <div class="endpoint-card">
-          <div class="endpoint-header"><span class="method method-post">POST</span><span class="endpoint-path">/api/files/upload</span></div>
-          <div class="endpoint-body"><p>Upload file (multipart, max 20 MB). Sandboxed storage.</p></div>
-        </div>
-        <div class="endpoint-card" style="margin-top:.5rem">
-          <div class="endpoint-header"><span class="method method-delete">DELETE</span><span class="endpoint-path">/api/files/{fileName}</span></div>
-          <div class="endpoint-body"><p>Delete a file — path-traversal safe, rate limited.</p></div>
-        </div>
-      </div>
-
-      <div class="endpoint-group">
-        <div class="endpoint-group-title"><i data-lucide="scroll-text" class="icon-sm"></i> Audit</div>
-        <div class="endpoint-card">
-          <div class="endpoint-header"><span class="method method-get">GET</span><span class="endpoint-path">/api/audit/recent</span></div>
-          <div class="endpoint-body"><p>Latest N audit events. Admin only.</p></div>
-        </div>
-        <div class="endpoint-card" style="margin-top:.5rem">
-          <div class="endpoint-header"><span class="method method-get">GET</span><span class="endpoint-path">/api/audit/search</span></div>
-          <div class="endpoint-body"><p>Filter by user, action, date range. Admin only.</p></div>
-        </div>
-      </div>
+    <div class="grid-4 reveal">
+      <a href="/quickstart.html" class="explore-card">
+        <div class="card-icon ci-green" style="margin-bottom:.6rem"><i data-lucide="rocket" class="icon-lg"></i></div>
+        <h3>Quick Start</h3>
+        <p>Authenticate, connect SignalR, and send your first message in 3 steps.</p>
+        <div class="explore-card-footer"><i data-lucide="arrow-right" class="icon-sm"></i> Get started</div>
+      </a>
+      <a href="/playground.html" class="explore-card">
+        <div class="card-icon ci-orange" style="margin-bottom:.6rem"><i data-lucide="terminal" class="icon-lg"></i></div>
+        <h3>Playground</h3>
+        <p>Send live requests to every endpoint right in the browser — no setup needed.</p>
+        <div class="explore-card-footer"><i data-lucide="arrow-right" class="icon-sm"></i> Try it live</div>
+      </a>
+      <a href="/api.html" class="explore-card">
+        <div class="card-icon ci-purple" style="margin-bottom:.6rem"><i data-lucide="layers" class="icon-lg"></i></div>
+        <h3>API Overview</h3>
+        <p>Browse all 40+ endpoints across Auth, Users, Rooms, Messages, Files, and more.</p>
+        <div class="explore-card-footer"><i data-lucide="arrow-right" class="icon-sm"></i> Browse routes</div>
+      </a>
+      <a href="/docs.html" class="explore-card">
+        <div class="card-icon ci-amber" style="margin-bottom:.6rem"><i data-lucide="book-open" class="icon-lg"></i></div>
+        <h3>Full Docs</h3>
+        <p>Detailed parameters, request/response schemas, and examples for every endpoint.</p>
+        <div class="explore-card-footer"><i data-lucide="arrow-right" class="icon-sm"></i> Read the docs</div>
+      </a>
     </div>
 
   </div>
@@ -278,13 +247,20 @@
 <footer>
   <p>Chat API v1 &nbsp;·&nbsp; .NET 9 &nbsp;·&nbsp;
     <a href="/">Home</a> &nbsp;·&nbsp;
+    <a href="/quickstart.html">Quick Start</a> &nbsp;·&nbsp;
+    <a href="/playground.html">Playground</a> &nbsp;·&nbsp;
+    <a href="/api.html">API</a> &nbsp;·&nbsp;
     <a href="/docs.html">Docs</a> &nbsp;·&nbsp;
-    <a href="/swagger">Swagger UI</a> &nbsp;·&nbsp;
-    <a href="/health">Health</a>
+    <a href="/status.html">Status</a> &nbsp;·&nbsp;
+    <a href="/swagger">Swagger UI</a>
   </p>
 </footer>
 
-<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js" defer></script>
-<script src="/js/main.js" defer></script>
+<button class="scroll-top" id="scroll-top" aria-label="Scroll to top">
+  <i data-lucide="arrow-up" class="icon-md"></i>
+</button>
+
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<script src="/js/main.js"></script>
 </body>
 </html>

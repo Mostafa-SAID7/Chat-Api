@@ -205,6 +205,57 @@ namespace apiContact.Data.Repositories
                 Builders<Message>.Update.Pull($"reactions.{emoji}", userId));
         }
 
+        // ── Pinning ──────────────────────────────────────────────
+
+        public async Task<bool> PinAsync(string id, string pinnedBy)
+        {
+            var msg = await GetByIdAsync(id);
+            if (msg is null || msg.IsDeleted) return false;
+            msg.IsPinned  = true;
+            msg.PinnedAt  = DateTime.UtcNow;
+            msg.PinnedBy  = pinnedBy;
+            msg.UpdatedAt = DateTime.UtcNow;
+            if (_db.IsInMemory) { _db.Messages[id] = msg; return true; }
+            await _col!.UpdateOneAsync(m => m.Id == id,
+                Builders<Message>.Update
+                    .Set(m => m.IsPinned, true)
+                    .Set(m => m.PinnedAt,  msg.PinnedAt)
+                    .Set(m => m.PinnedBy,  pinnedBy)
+                    .Set(m => m.UpdatedAt, msg.UpdatedAt));
+            return true;
+        }
+
+        public async Task<bool> UnpinAsync(string id)
+        {
+            var msg = await GetByIdAsync(id);
+            if (msg is null) return false;
+            msg.IsPinned  = false;
+            msg.PinnedAt  = null;
+            msg.PinnedBy  = null;
+            msg.UpdatedAt = DateTime.UtcNow;
+            if (_db.IsInMemory) { _db.Messages[id] = msg; return true; }
+            await _col!.UpdateOneAsync(m => m.Id == id,
+                Builders<Message>.Update
+                    .Set(m => m.IsPinned,  false)
+                    .Unset(m => m.PinnedAt)
+                    .Unset(m => m.PinnedBy)
+                    .Set(m => m.UpdatedAt, msg.UpdatedAt));
+            return true;
+        }
+
+        public async Task<List<Message>> GetPinnedAsync(string roomId)
+        {
+            if (_db.IsInMemory)
+                return _db.Messages.Values
+                    .Where(m => m.RoomId == roomId && m.IsPinned && !m.IsDeleted)
+                    .OrderByDescending(m => m.PinnedAt)
+                    .ToList();
+            return await _col!
+                .Find(m => m.RoomId == roomId && m.IsPinned && !m.IsDeleted)
+                .SortByDescending(m => m.PinnedAt)
+                .ToListAsync();
+        }
+
         // ── Helpers ──────────────────────────────────────────────
 
         private static IEnumerable<Message> ApplyFilter(

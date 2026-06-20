@@ -3,3 +3,4 @@
 - [SortDirection naming conflict](sort-direction-conflict.md) — Custom enum named SortDirection conflicts with MongoDB.Driver.SortDirection; renamed to SortOrder to avoid CS0104 ambiguity
 - [MongoDB double-sort bug](mongodb-double-sort.md) — Chaining two SortBy/SortByDescending calls replaces the first; fix by fetching with the primary sort then re-sorting the page in memory
 - [Soft-delete pattern](soft-delete-pattern.md) — All entities use BaseEntity.SoftDelete(); User/Room repos use soft-delete in DeleteAsync; always filter !IsDeleted in GetAll/Search/GetById; messages show "[Message deleted]" instead of being removed
+- [Extended feature set](extended-features.md) — Message pinning, reply threading, DM rooms, invite codes, room stats, user blocking all implemented; LoginDto uses UsernameOrEmail field (not username); status.html auto-acquires seeded token (alice/password123)

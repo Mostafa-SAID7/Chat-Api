@@ -203,5 +203,58 @@ namespace apiContact.Controllers
             if (!ok) return NotFound(ApiResponse<object>.Fail("Room not found"));
             return Ok(ApiResponse<object>.Ok(new { id }, "Room deleted"));
         }
+
+        // ── Direct-Message rooms ──────────────────────────────────
+
+        /// <summary>
+        /// Create (or retrieve) a private 1-to-1 Direct-Message room with another user.
+        /// Idempotent — returns the existing room if one already exists for the pair.
+        /// </summary>
+        [HttpPost("dm")]
+        public async Task<IActionResult> CreateDm([FromBody] CreateDirectRoomDto dto)
+        {
+            if (dto.TargetUserId == CallerId)
+                return BadRequest(ApiResponse<object>.Fail("Cannot create a DM with yourself"));
+            var room = await _mediator.Send(new CreateDirectRoomCommand(CallerId, dto.TargetUserId));
+            return Ok(ApiResponse<object>.Ok(room, "Direct-message room ready"));
+        }
+
+        // ── Invite links ──────────────────────────────────────────
+
+        /// <summary>Generate (or regenerate) a time-limited invite code for a room</summary>
+        [HttpPost("{id}/invite")]
+        public async Task<IActionResult> GenerateInvite(string id, [FromBody] GenerateInviteDto dto)
+        {
+            var code = await _mediator.Send(new GenerateRoomInviteCommand(id, dto.ExpiryHours));
+            if (code is null) return NotFound(ApiResponse<object>.Fail("Room not found"));
+            return Ok(ApiResponse<object>.Ok(new
+            {
+                roomId    = id,
+                code,
+                expiresIn = $"{dto.ExpiryHours}h"
+            }, "Invite code generated"));
+        }
+
+        /// <summary>Join a room using an invite code (validates expiry and member cap)</summary>
+        [HttpPost("join/{code}")]
+        public async Task<IActionResult> JoinByInvite(string code)
+        {
+            var room = await _mediator.Send(new JoinRoomByInviteCommand(code, CallerId));
+            if (room is null)
+                return BadRequest(ApiResponse<object>.Fail(
+                    "Invalid or expired invite code, or room is at capacity"));
+            return Ok(ApiResponse<object>.Ok(room, "Joined room successfully"));
+        }
+
+        // ── Statistics ────────────────────────────────────────────
+
+        /// <summary>Get room statistics: member count, message count, pinned count, last activity</summary>
+        [HttpGet("{id}/stats")]
+        public async Task<IActionResult> GetStats(string id)
+        {
+            var stats = await _mediator.Send(new GetRoomStatsQuery(id));
+            if (stats is null) return NotFound(ApiResponse<object>.Fail("Room not found"));
+            return Ok(ApiResponse<object>.Ok(stats));
+        }
     }
 }

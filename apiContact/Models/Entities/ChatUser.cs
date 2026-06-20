@@ -32,5 +32,11 @@ namespace apiContact.Models.Entities
 
         // LastSeen is separate from UpdatedAt — updated on every presence change
         public DateTime LastSeen { get; set; } = DateTime.UtcNow;
+
+        // Optional bio / tagline shown on profile
+        public string? Bio { get; set; }
+
+        // Blocked users — their messages are filtered client-side and DMs rejected
+        public List<string> BlockedUserIds { get; set; } = new();
     }
 }
