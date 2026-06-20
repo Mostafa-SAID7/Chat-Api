@@ -20,7 +20,7 @@ namespace apiContact.Services
         public async Task<List<ChatUser>> GetAllAsync()
         {
             if (_db.IsInMemory) return _db.Users.Values.OrderBy(u => u.DisplayName).ToList();
-            return await _col!.Find(_ => true).ToListAsync();
+            return await _col!.Find(_ => true).SortBy(u => u.DisplayName).ToListAsync();
         }
 
         public async Task<ChatUser?> GetByIdAsync(string id)
@@ -31,20 +31,32 @@ namespace apiContact.Services
 
         public async Task<ChatUser?> GetByUsernameAsync(string username)
         {
-            if (_db.IsInMemory) return _db.Users.Values.FirstOrDefault(u => u.Username == username);
+            if (_db.IsInMemory)
+                return _db.Users.Values.FirstOrDefault(
+                    u => u.Username.Equals(username, StringComparison.OrdinalIgnoreCase));
             return await _col!.Find(u => u.Username == username).FirstOrDefaultAsync();
+        }
+
+        public async Task<ChatUser?> GetByEmailAsync(string email)
+        {
+            if (_db.IsInMemory)
+                return _db.Users.Values.FirstOrDefault(
+                    u => u.Email.Equals(email, StringComparison.OrdinalIgnoreCase));
+            return await _col!.Find(u => u.Email == email).FirstOrDefaultAsync();
         }
 
         public async Task<ChatUser> CreateAsync(CreateUserDto dto)
         {
             var user = new ChatUser
             {
-                Id = ObjectId.GenerateNewId().ToString(),
-                Username = dto.Username,
-                DisplayName = dto.DisplayName,
-                Email = dto.Email,
-                AvatarUrl = dto.AvatarUrl,
-                CreatedAt = DateTime.UtcNow
+                Id           = ObjectId.GenerateNewId().ToString(),
+                Username     = dto.Username.Trim().ToLower(),
+                DisplayName  = string.IsNullOrWhiteSpace(dto.DisplayName) ? dto.Username : dto.DisplayName,
+                Email        = dto.Email.Trim().ToLower(),
+                AvatarUrl    = dto.AvatarUrl,
+                Role         = dto.Role,
+                PasswordHash = dto.Password,   // caller must pass an already-hashed value
+                CreatedAt    = DateTime.UtcNow
             };
             if (_db.IsInMemory) { _db.Users[user.Id] = user; return user; }
             await _col!.InsertOneAsync(user);
@@ -56,11 +68,39 @@ namespace apiContact.Services
             var user = await GetByIdAsync(id);
             if (user == null) return null;
             if (dto.DisplayName != null) user.DisplayName = dto.DisplayName;
-            if (dto.AvatarUrl != null) user.AvatarUrl = dto.AvatarUrl;
-            if (dto.IsOnline.HasValue) { user.IsOnline = dto.IsOnline.Value; user.LastSeen = DateTime.UtcNow; }
+            if (dto.AvatarUrl   != null) user.AvatarUrl   = dto.AvatarUrl;
+            if (dto.IsOnline.HasValue)
+            {
+                user.IsOnline = dto.IsOnline.Value;
+                user.LastSeen = DateTime.UtcNow;
+            }
             if (_db.IsInMemory) { _db.Users[id] = user; return user; }
             await _col!.ReplaceOneAsync(u => u.Id == id, user);
             return user;
+        }
+
+        public async Task<bool> ChangePasswordAsync(string id, string newPasswordHash)
+        {
+            var user = await GetByIdAsync(id);
+            if (user == null) return false;
+            user.PasswordHash = newPasswordHash;
+            if (_db.IsInMemory) { _db.Users[id] = user; return true; }
+            await _col!.UpdateOneAsync(u => u.Id == id,
+                Builders<ChatUser>.Update.Set(u => u.PasswordHash, newPasswordHash));
+            return true;
+        }
+
+        public async Task SaveRefreshTokenAsync(string id, string? token, DateTime? expiry)
+        {
+            var user = await GetByIdAsync(id);
+            if (user == null) return;
+            user.RefreshToken       = token;
+            user.RefreshTokenExpiry = expiry;
+            if (_db.IsInMemory) { _db.Users[id] = user; return; }
+            await _col!.UpdateOneAsync(u => u.Id == id,
+                Builders<ChatUser>.Update
+                    .Set(u => u.RefreshToken,       token)
+                    .Set(u => u.RefreshTokenExpiry, expiry));
         }
 
         public async Task<bool> DeleteAsync(string id)
@@ -71,8 +111,6 @@ namespace apiContact.Services
         }
 
         public async Task SetOnlineAsync(string id, bool isOnline)
-        {
-            await UpdateAsync(id, new UpdateUserDto { IsOnline = isOnline });
-        }
+            => await UpdateAsync(id, new UpdateUserDto { IsOnline = isOnline });
     }
 }

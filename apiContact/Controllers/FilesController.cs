@@ -1,55 +1,73 @@
+using System.Security.Claims;
+using apiContact.Hubs;
 using apiContact.Models.Dtos;
 using apiContact.Models.Entities;
 using apiContact.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
-using apiContact.Hubs;
 
 namespace apiContact.Controllers
 {
     [ApiController]
     [Route("api/files")]
+    [Authorize]
     public class FilesController : ControllerBase
     {
-        private readonly IFileService _files;
+        private readonly IFileService    _files;
         private readonly IMessageService _messages;
         private readonly IHubContext<ChatHub> _hub;
 
-        public FilesController(IFileService files, IMessageService messages, IHubContext<ChatHub> hub)
+        public FilesController(
+            IFileService files,
+            IMessageService messages,
+            IHubContext<ChatHub> hub)
         {
-            _files = files;
+            _files    = files;
             _messages = messages;
-            _hub = hub;
+            _hub      = hub;
         }
 
-        /// <summary>Upload a file and optionally attach it to a room message</summary>
+        /// <summary>Upload a file (max 20 MB). Optionally attach to a room as a message.</summary>
         [HttpPost("upload")]
         [RequestSizeLimit(20_000_000)]
-        public async Task<IActionResult> Upload(IFormFile file, [FromForm] string? roomId, [FromForm] string? senderId)
+        public async Task<IActionResult> Upload(
+            IFormFile file,
+            [FromForm] string? roomId)
         {
             if (file == null || file.Length == 0)
                 return BadRequest(ApiResponse<object>.Fail("No file provided"));
 
-            var allowed = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp", ".pdf", ".txt", ".zip", ".mp4", ".mp3" };
+            var allowed = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp",
+                                  ".pdf", ".txt", ".zip", ".mp4", ".mp3" };
             var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
             if (!allowed.Contains(ext))
                 return BadRequest(ApiResponse<object>.Fail($"File type '{ext}' not allowed"));
+
+            var callerId   = User.FindFirstValue(ClaimTypes.NameIdentifier)
+                          ?? User.FindFirstValue("sub");
+            var callerName = User.FindFirstValue("displayName")
+                          ?? User.FindFirstValue(ClaimTypes.Name)
+                          ?? "Unknown";
 
             var (url, fileName, size) = await _files.UploadAsync(file);
 
             object result = new { url, fileName, size, ext };
 
-            if (!string.IsNullOrWhiteSpace(roomId) && !string.IsNullOrWhiteSpace(senderId))
+            if (!string.IsNullOrWhiteSpace(roomId))
             {
                 var isImage = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" }.Contains(ext);
-                var msg = await _messages.SendAsync(new SendMessageDto
-                {
-                    RoomId = roomId,
-                    SenderId = senderId,
-                    Content = fileName,
-                    Type = isImage ? MessageType.Image : MessageType.File
-                });
-                msg.FileUrl = url;
+                var msg = await _messages.SendAsync(
+                    new SendMessageDto
+                    {
+                        RoomId   = roomId,
+                        SenderId = callerId!,
+                        Content  = fileName,
+                        Type     = isImage ? MessageType.Image : MessageType.File
+                    },
+                    senderName: callerName);
+
+                msg.FileUrl  = url;
                 msg.FileName = fileName;
                 msg.FileSize = size;
 
@@ -66,7 +84,7 @@ namespace apiContact.Controllers
             return Ok(ApiResponse<object>.Ok(result, "File uploaded"));
         }
 
-        /// <summary>Delete an uploaded file by name</summary>
+        /// <summary>Delete an uploaded file by stored filename</summary>
         [HttpDelete("{fileName}")]
         public async Task<IActionResult> Delete(string fileName)
         {

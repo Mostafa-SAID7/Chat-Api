@@ -7,7 +7,7 @@ namespace apiContact.Services
     {
         Task<List<Message>> GetByRoomAsync(string roomId, int limit = 50, int skip = 0);
         Task<Message?> GetByIdAsync(string id);
-        Task<Message> SendAsync(SendMessageDto dto);
+        Task<Message> SendAsync(SendMessageDto dto, string senderName);
         Task<Message?> EditAsync(string id, string senderId, string content);
         Task<bool> DeleteAsync(string id, string senderId);
         Task MarkReadAsync(string id, string userId);
