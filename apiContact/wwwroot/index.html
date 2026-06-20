@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chat API — Realtime Messaging Platform</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="/">
+    <div class="dot"></div>Chat API
+  </a>
+  <div class="nav-links">
+    <a href="/" class="active">Home</a>
+    <a href="/docs.html">Docs</a>
+    <a href="/swagger">Swagger <span class="nav-badge">UI</span></a>
+    <a href="/health">Health</a>
+  </div>
+  <div class="nav-actions">
+    <button class="theme-toggle" id="theme-toggle" title="Toggle theme">☀️</button>
+    <button class="hamburger" id="hamburger" aria-label="Menu" aria-expanded="false">☰</button>
+  </div>
+</nav>
+
+<!-- MOBILE MENU -->
+<div class="mobile-menu" id="mobile-menu">
+  <a href="/" class="active">🏠 Home</a>
+  <a href="/docs.html">📖 Docs</a>
+  <a href="/swagger">⚡ Swagger UI</a>
+  <a href="/health">💚 Health</a>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-tag fade-up">⚡ Production-Ready Chat API</div>
+  <h1 class="fade-up fade-up-1">
+    Realtime Messaging<br />
+    <span id="typewriter" style="color:var(--accent)">Real-time Messaging</span>
+  </h1>
+  <p class="fade-up fade-up-2">
+    A fully-featured chat backend built on ASP.NET Core 9 with SignalR WebSockets,
+    MongoDB persistence, Redis pub/sub, JWT auth, and blob file storage.
+    REST + Realtime in one API.
+  </p>
+  <div class="hero-actions fade-up fade-up-3">
+    <a href="/swagger" class="btn btn-primary">⚡ Explore Swagger</a>
+    <a href="/docs.html" class="btn btn-outline">📖 API Reference</a>
+  </div>
+</div>
+
+<!-- STATUS -->
+<div style="max-width:1160px;margin:0 auto;padding:0 1.5rem;">
+  <div class="status-bar">
+    <div class="status-item">
+      <div class="status-dot online"></div>
+      <span id="api-status" class="badge badge-green">API Online</span>
+    </div>
+    <div class="status-item">
+      <div class="status-dot online"></div>
+      <span>SignalR Active</span>
+    </div>
+    <div class="status-item">
+      <div class="status-dot standby"></div>
+      <span>MongoDB Ready</span>
+    </div>
+    <div class="status-item">
+      <div class="status-dot standby"></div>
+      <span>Redis Optional</span>
+    </div>
+    <div class="status-item">
+      <div class="status-dot online"></div>
+      <span>JWT Auth ✓</span>
+    </div>
+    <div class="status-item">
+      <div class="status-dot online"></div>
+      <span>File Storage ✓</span>
+    </div>
+  </div>
+</div>
+
+<!-- STATS -->
+<div style="max-width:1160px;margin:0 auto;padding:0 1.5rem 1rem;">
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-value" data-count="5" data-suffix="">5</div>
+      <div class="stat-label">Resources</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value" data-count="24" data-suffix="">24</div>
+      <div class="stat-label">REST Endpoints</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value" data-count="10" data-suffix="">10</div>
+      <div class="stat-label">WS Events</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value" data-count="9" data-suffix="">9</div>
+      <div class="stat-label">.NET Version</div>
+    </div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section>
+  <div class="section-header">
+    <h2>Everything you need for chat</h2>
+    <p>Built with modern patterns — no compromises on scalability or DX</p>
+  </div>
+  <div class="grid-3">
+    <div class="card">
+      <div class="card-icon">⚡</div>
+      <h3>SignalR WebSockets</h3>
+      <p>Real-time bidirectional communication via SignalR Hub. Automatic fallback to long-polling. Room groups, typing indicators, online presence.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🔐</div>
+      <h3>JWT Authentication</h3>
+      <p>Full identity system with register, login, refresh tokens, role-based access, and password hashing via BCrypt. Secure by default.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🍃</div>
+      <h3>MongoDB Ready</h3>
+      <p>MongoDB.Driver with typed collections. Runs in-memory when no URI is set — zero configuration needed for local development.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🔴</div>
+      <h3>Redis Pub/Sub</h3>
+      <p>StackExchange.Redis pre-wired for horizontal scaling. Broadcast messages across multiple API instances with zero code changes.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">📁</div>
+      <h3>Blob File Uploads</h3>
+      <p>Upload images, documents, and media files up to 20 MB. Files auto-attach to messages with direct download URLs.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">📖</div>
+      <h3>Full Swagger UI</h3>
+      <p>Every endpoint documented with examples, request/response schemas, and live try-it-out. Custom dark theme included.</p>
+    </div>
+  </div>
+</section>
+
+<!-- API OVERVIEW GRID -->
+<div style="background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+  <section>
+    <div class="section-header">
+      <h2>API Endpoints at a glance</h2>
+      <p>REST + WebSocket — everything in one place</p>
+    </div>
+
+    <!-- AUTH -->
+    <div class="endpoint-group">
+      <div class="endpoint-group-title">🔐 Auth <span class="badge badge-purple" style="font-size:.68rem">6 endpoints</span></div>
+      <div class="grid-2">
+        <div class="endpoint-card"><div class="endpoint-header"><span class="method method-post">POST</span><span class="endpoint-path">/api/auth/register</span></div><div class="endpoint-body"><p>Register a new account, get JWT tokens</p></div></div>
+        <div class="endpoint-card"><div class="endpoint-header"><span class="method method-post">POST</span><span class="endpoint-path">/api/auth/login</span></div><div class="endpoint-body"><p>Login, returns access + refresh token</p></div></div>
+        <div class="endpoint-card"><div class="endpoint-header"><span class="method method-post">POST</span><span class="endpoint-path">/api/auth/refresh</span></div><div class="endpoint-body"><p>Exchange refresh token for new access token</p></div></div>
+        <div class="endpoint-card"><div class="endpoint-header"><span class="method method-get">GET</span><span class="endpoint-path">/api/auth/me</span></div><div class="endpoint-body"><p>Get current user profile from JWT</p></div></div>
+        <div class="endpoint-card"><div class="endpoint-header"><span class="method method-post">POST</span><span class="endpoint-path">/api/auth/logout</span></div><div class="endpoint-body"><p>Revoke refresh token, set offline</p></div></div>
+        <div class="endpoint-card"><div class="endpoint-header"><span class="method method-post">POST</span><span class="endpoint-path">/api/auth/change-password</span></div><div class="endpoint-body"><p>Change password, revoke all sessions</p></div></div>
+      </div>
+    </div>
+
+    <!-- USERS -->
+    <div class="endpoint-group">
+      <div class="endpoint-group-title">👤 Users <span class="badge badge-blue" style="font-size:.68rem">6 endpoints</span></div>
+      <div class="grid-2">
+        <div class="endpoint-card"><div class="endpoint-header"><span class="method method-get">GET</span><span class="endpoint-path">/api/users</span></div><div class="endpoint-body"><p>List all users with online status</p></div></div>
+        <div class="endpoint-card"><div class="endpoint-header"><span class="method method-get">GET</span><span class="endpoint-path">/api/users/{id}</span></div><div class="endpoint-body"><p>Get user by ID</p></div></div>
+        <div class="endpoint-card"><div class="endpoint-header"><span class="method method-post">POST</span><span class="endpoint-path">/api/users</span></div><div class="endpoint-body"><p>Create a new user account</p></div></div>
+        <div class="endpoint-card"><div class="endpoint-header"><span class="method method-patch">PATCH</span><span class="endpoint-path">/api/users/{id}</span></div><div class="endpoint-body"><p>Update display name or avatar</p></div></div>
+        <div class="endpoint-card"><div class="endpoint-header"><span class="method method-post">POST</span><span class="endpoint-path">/api/users/{id}/status</span></div><div class="endpoint-body"><p>Set online / offline status</p></div></div>
+        <div class="endpoint-card"><div class="endpoint-header"><span class="method method-delete">DELETE</span><span class="endpoint-path">/api/users/{id}</span></div><div class="endpoint-body"><p>Delete a user account (admin)</p></div></div>
+      </div>
+    </div>
+
+    <!-- ROOMS -->
+    <div class="endpoint-group">
+      <div class="endpoint-group-title">💬 Rooms <span class="badge badge-green" style="font-size:.68rem">6 endpoints</span></div>
+      <div class="grid-2">
+        <div class="endpoint-card"><div class="endpoint-header"><span class="method method-get">GET</span><span class="endpoint-path">/api/rooms</span></div><div class="endpoint-body"><p>List all chat rooms</p></div></div>
+        <div class="endpoint-card"><div class="endpoint-header"><span class="method method-post">POST</span><span class="endpoint-path">/api/rooms</span></div><div class="endpoint-body"><p>Create a room (Direct / Group / Channel)</p></div></div>
+        <div class="endpoint-card"><div class="endpoint-header"><span class="method method-get">GET</span><span class="endpoint-path">/api/rooms/user/{userId}</span></div><div class="endpoint-body"><p>Get all rooms a user belongs to</p></div></div>
+        <div class="endpoint-card"><div class="endpoint-header"><span class="method method-get">GET</span><span class="endpoint-path">/api/rooms/{id}</span></div><div class="endpoint-body"><p>Get single room details</p></div></div>
+        <div class="endpoint-card"><div class="endpoint-header"><span class="method method-post">POST</span><span class="endpoint-path">/api/rooms/{id}/members</span></div><div class="endpoint-body"><p>Add a member to a room</p></div></div>
+        <div class="endpoint-card"><div class="endpoint-header"><span class="method method-delete">DELETE</span><span class="endpoint-path">/api/rooms/{id}/members/{uid}</span></div><div class="endpoint-body"><p>Remove a member from a room</p></div></div>
+      </div>
+    </div>
+
+    <!-- MESSAGES -->
+    <div class="endpoint-group">
+      <div class="endpoint-group-title">✉️ Messages <span class="badge badge-orange" style="font-size:.68rem">6 endpoints</span></div>
+      <div class="grid-2">
+        <div class="endpoint-card"><div class="endpoint-header"><span class="method method-get">GET</span><span class="endpoint-path">/api/messages/room/{roomId}</span></div><div class="endpoint-body"><p>Paginated message history for a room</p></div></div>
+        <div class="endpoint-card"><div class="endpoint-header"><span class="method method-post">POST</span><span class="endpoint-path">/api/messages</span></div><div class="endpoint-body"><p>Send a message — broadcasts via WebSocket</p></div></div>
+        <div class="endpoint-card"><div class="endpoint-header"><span class="method method-patch">PATCH</span><span class="endpoint-path">/api/messages/{id}</span></div><div class="endpoint-body"><p>Edit message content</p></div></div>
+        <div class="endpoint-card"><div class="endpoint-header"><span class="method method-delete">DELETE</span><span class="endpoint-path">/api/messages/{id}</span></div><div class="endpoint-body"><p>Soft-delete a message</p></div></div>
+        <div class="endpoint-card"><div class="endpoint-header"><span class="method method-post">POST</span><span class="endpoint-path">/api/messages/{id}/read</span></div><div class="endpoint-body"><p>Mark a message as read</p></div></div>
+        <div class="endpoint-card"><div class="endpoint-header"><span class="method method-get">GET</span><span class="endpoint-path">/api/messages/room/{id}/unread</span></div><div class="endpoint-body"><p>Get unread count for a room</p></div></div>
+      </div>
+    </div>
+
+    <!-- FILES -->
+    <div class="endpoint-group">
+      <div class="endpoint-group-title">📎 Files <span class="badge badge-purple" style="font-size:.68rem">2 endpoints</span></div>
+      <div class="grid-2">
+        <div class="endpoint-card"><div class="endpoint-header"><span class="method method-post">POST</span><span class="endpoint-path">/api/files/upload</span></div><div class="endpoint-body"><p>Upload file (up to 20 MB). Optionally attach to a room.</p></div></div>
+        <div class="endpoint-card"><div class="endpoint-header"><span class="method method-delete">DELETE</span><span class="endpoint-path">/api/files/{fileName}</span></div><div class="endpoint-body"><p>Delete an uploaded file by name</p></div></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- WEBSOCKET -->
+<section>
+  <div class="section-header">
+    <h2>⚡ WebSocket — SignalR Hub</h2>
+    <p>Connect to <code>/hubs/chat</code> for realtime events</p>
+  </div>
+  <div class="grid-2">
+    <div>
+      <h3 style="font-size:.82rem;color:var(--text2);margin-bottom:.85rem;text-transform:uppercase;letter-spacing:.08em;">📤 Client → Server (invoke)</h3>
+      <div class="ws-demo">
+        <div class="ws-line"><span class="ws-dir-out">▶ JoinRoom</span><span class="ws-key">(roomId)</span></div>
+        <div class="ws-line"><span class="ws-dir-out">▶ LeaveRoom</span><span class="ws-key">(roomId)</span></div>
+        <div class="ws-line"><span class="ws-dir-out">▶ Typing</span><span class="ws-key">(roomId, userId, displayName)</span></div>
+        <div class="ws-line"><span class="ws-dir-out">▶ StopTyping</span><span class="ws-key">(roomId, userId)</span></div>
+        <div class="ws-line"><span class="ws-dir-out">▶ Ping</span><span class="ws-key">() → Pong</span></div>
+      </div>
+    </div>
+    <div>
+      <h3 style="font-size:.82rem;color:var(--text2);margin-bottom:.85rem;text-transform:uppercase;letter-spacing:.08em;">📥 Server → Client (on)</h3>
+      <div class="ws-demo">
+        <div class="ws-line"><span class="ws-dir-in">◀ ReceiveMessage</span><span class="ws-key">{ id, roomId, content, … }</span></div>
+        <div class="ws-line"><span class="ws-dir-in">◀ MessageEdited</span><span class="ws-key">{ id, content }</span></div>
+        <div class="ws-line"><span class="ws-dir-in">◀ MessageDeleted</span><span class="ws-key">{ id, roomId }</span></div>
+        <div class="ws-line"><span class="ws-dir-in">◀ UserTyping</span><span class="ws-key">{ roomId, userId, displayName }</span></div>
+        <div class="ws-line"><span class="ws-dir-in">◀ UserOnline</span><span class="ws-key">{ userId }</span></div>
+        <div class="ws-line"><span class="ws-dir-in">◀ UserOffline</span><span class="ws-key">{ userId }</span></div>
+        <div class="ws-line"><span class="ws-dir-in">◀ UserJoinedRoom</span><span class="ws-key">{ roomId }</span></div>
+        <div class="ws-line"><span class="ws-dir-in">◀ Pong</span><span class="ws-key">{ timestamp }</span></div>
+      </div>
+    </div>
+  </div>
+  <div style="margin-top:1.5rem;">
+    <h3 style="font-size:.82rem;color:var(--text2);margin-bottom:.75rem;text-transform:uppercase;letter-spacing:.08em;">Quick connect (JavaScript)</h3>
+    <div class="code-block" id="ws-snippet" style="position:relative;">
+      <button class="copy-btn" data-target="ws-snippet">Copy</button>
+<span class="comment">// npm install @microsoft/signalr</span>
+<span class="key">import</span> * as signalR <span class="key">from</span> <span class="str">"@microsoft/signalr"</span>;
+
+<span class="key">const</span> connection = <span class="key">new</span> signalR.HubConnectionBuilder()
+  .withUrl(<span class="str">"/hubs/chat?access_token=YOUR_JWT"</span>)
+  .withAutomaticReconnect()
+  .build();
+
+connection.on(<span class="str">"ReceiveMessage"</span>, (msg) =&gt; {
+  console.log(<span class="str">`[</span><span class="key">${msg.senderName}</span><span class="str">]:`</span>, msg.content);
+});
+
+<span class="key">await</span> connection.start();
+<span class="key">await</span> connection.invoke(<span class="str">"JoinRoom"</span>, <span class="str">"room_001"</span>);
+    </div>
+  </div>
+</section>
+
+<!-- TECH STACK -->
+<section style="text-align:center;padding-bottom:4rem;">
+  <div class="section-header">
+    <h2>Tech Stack</h2>
+    <p>Modern, production-tested technologies</p>
+  </div>
+  <div class="tech-stack">
+    <div class="tech-chip"><div class="chip-dot" style="background:#7b68ee"></div>.NET 9 ASP.NET Core</div>
+    <div class="tech-chip"><div class="chip-dot" style="background:#58a6ff"></div>SignalR WebSockets</div>
+    <div class="tech-chip"><div class="chip-dot" style="background:#ffa657"></div>JWT Bearer Auth</div>
+    <div class="tech-chip"><div class="chip-dot" style="background:#3fb950"></div>MongoDB Driver 3.x</div>
+    <div class="tech-chip"><div class="chip-dot" style="background:#f78166"></div>StackExchange.Redis</div>
+    <div class="tech-chip"><div class="chip-dot" style="background:#d2a8ff"></div>BCrypt Password Hash</div>
+    <div class="tech-chip"><div class="chip-dot" style="background:#79b8ff"></div>Blob File Storage</div>
+    <div class="tech-chip"><div class="chip-dot" style="background:#85e89d"></div>Swashbuckle Swagger</div>
+  </div>
+</section>
+
+<footer>
+  <p>Chat API v1 &nbsp;·&nbsp; .NET 9 &nbsp;·&nbsp;
+    <a href="/">Home</a> &nbsp;·&nbsp;
+    <a href="/docs.html">Docs</a> &nbsp;·&nbsp;
+    <a href="/swagger">Swagger UI</a> &nbsp;·&nbsp;
+    <a href="/health">Health</a>
+  </p>
+</footer>
+
+<script src="/js/main.js"></script>
+</body>
+</html>
