@@ -81,7 +81,7 @@ function initDocsTabs() {
 
   const STORAGE_KEY = 'chatapi-docs-tab';
 
-  function activateTab(tabId) {
+  function activateTab(tabId, fromClick) {
     tabs.forEach(t => {
       const active = t.dataset.tab === tabId;
       t.classList.toggle('active', active);
@@ -92,19 +92,26 @@ function initDocsTabs() {
     });
     localStorage.setItem(STORAGE_KEY, tabId);
 
-    // Scroll active tab into view in the tab bar
+    // Scroll the active tab button into view horizontally in the tab bar
     const activeTab = document.querySelector(`.dtab[data-tab="${tabId}"]`);
     if (activeTab) {
       activeTab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
     }
 
-    // Scroll to top of content area
-    const content = document.querySelector('.docs-content');
-    if (content) content.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // When user clicks a tab, scroll the page so content is visible below the two sticky bars
+    if (fromClick) {
+      const navH    = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--nav-h'))    || 60;
+      const tabnavH = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--tabnav-h')) || 48;
+      const content = document.querySelector('.docs-content');
+      if (content) {
+        const top = content.getBoundingClientRect().top + window.scrollY - navH - tabnavH - 12;
+        window.scrollTo({ top, behavior: 'smooth' });
+      }
+    }
   }
 
   tabs.forEach(tab => {
-    tab.addEventListener('click', () => activateTab(tab.dataset.tab));
+    tab.addEventListener('click', () => activateTab(tab.dataset.tab, true));
   });
 
   // Restore last active tab or use URL hash
@@ -114,7 +121,7 @@ function initDocsTabs() {
   const initial = validIds.includes(hash) ? hash
                 : validIds.includes(saved) ? saved
                 : validIds[0];
-  activateTab(initial);
+  activateTab(initial, false);
 }
 
 /* ── Endpoint accordion ──────────────────────────────────── */
@@ -237,9 +244,16 @@ function initIcons() {
   if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
+/* ── Dynamic base URL ────────────────────────────────────── */
+function initBaseUrl() {
+  const el = document.getElementById('base-url');
+  if (el) el.textContent = window.location.origin;
+}
+
 /* ── Init ────────────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', () => {
   initTheme();
+  initBaseUrl();
   dismissLoader();
   initHamburger();
   initNav();

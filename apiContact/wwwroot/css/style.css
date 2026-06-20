@@ -499,16 +499,17 @@ footer a:hover { color: var(--text); }
 /* ── Sticky tab nav ───────────────────────────────────────── */
 .docs-tabnav {
   position: sticky;
-  top: var(--nav-h);
+  top: var(--nav-h);          /* sticks right below the main nav */
   z-index: 150;
   height: var(--tabnav-h);
-  background: var(--bg);
-  border-bottom: 1px solid var(--border);
+  background: var(--bg2);
+  border-bottom: 2px solid var(--border);
   transition: background var(--transition), border-color var(--transition);
+  box-shadow: 0 2px 8px rgba(0,0,0,.12);
   /* horizontal scroll on narrow screens */
   overflow-x: auto;
   overflow-y: hidden;
-  scrollbar-width: none; /* hide scrollbar */
+  scrollbar-width: none;
 }
 .docs-tabnav::-webkit-scrollbar { display: none; }
 
@@ -528,13 +529,14 @@ footer a:hover { color: var(--text); }
   background: none; border: none; cursor: pointer;
   border-bottom: 2px solid transparent;
   transition: color var(--transition), border-color var(--transition), background var(--transition);
-  margin-bottom: -1px; /* overlap tabnav border-bottom */
-  font-family: var(--font);
+  margin-bottom: -2px; /* overlap tabnav border-bottom */
+  font-family: var(--font); height: 100%;
 }
-.dtab:hover { color: var(--text); background: rgba(249,115,22,.05); }
+.dtab:hover { color: var(--text); background: rgba(249,115,22,.06); }
 .dtab.active {
   color: var(--accent);
   border-bottom-color: var(--accent);
+  background: rgba(249,115,22,.04);
 }
 .dtab svg { flex-shrink: 0; }
 
@@ -543,6 +545,7 @@ footer a:hover { color: var(--text); }
   max-width: 900px;
   margin: 0 auto;
   padding: 2rem 1.5rem 4rem;
+  min-height: 60vh; /* prevent page height jump when switching tabs */
 }
 .tab-panel { display: none; }
 .tab-panel.active { display: block; }
@@ -709,49 +712,66 @@ code {
    RESPONSIVE
    ═══════════════════════════════════════════════════════════ */
 
-/* ── Tablet ───────────────────────────────────────────────── */
+/* ── Tablet (1024px) ─────────────────────────────────────── */
 @media (max-width: 1024px) {
   .ep-summary { display: none; }
 }
 
-/* ── Mobile ───────────────────────────────────────────────── */
+/* ── Wider screens — show ep-summary ─────────────────────── */
+@media (min-width: 640px) {
+  .ep-summary { display: block; }
+}
+
+/* ── Mobile (≤768px) ─────────────────────────────────────── */
 @media (max-width: 768px) {
-  /* Nav: switch to flex so hidden links don't waste space */
+  /* Nav: collapse links, show hamburger */
   nav {
     display: flex;
     padding: 0 1rem;
     gap: .5rem;
   }
-  .nav-logo { flex: 1; }
+  .nav-logo { flex: 1; min-width: 0; }
   .nav-links { display: none; }
-  .nav-actions { margin-left: auto; }
+  .nav-actions { margin-left: auto; flex-shrink: 0; }
   .hamburger  { display: flex; }
 
-  /* Stats */
+  /* Mobile menu: on docs page, sits below the sticky tabnav */
+  .mobile-menu {
+    top: calc(var(--nav-h) + var(--tabnav-h));
+  }
+  /* On non-docs pages, tabnav doesn't exist so still use nav-h */
+  body:not(.docs-page) .mobile-menu {
+    top: var(--nav-h);
+  }
+
+  /* Stats 2-col */
   .stats { grid-template-columns: repeat(2, 1fr); }
   .stat  { border-right: 1px solid var(--border); }
   .stat:nth-child(2) { border-right: none; }
   .stat:nth-child(3) { border-top: 1px solid var(--border); }
   .stat:nth-child(4) { border-top: 1px solid var(--border); }
 
-  /* Docs */
-  .docs-intro { padding: 1.5rem 1rem 1rem; }
-  .docs-tabnav-inner { padding: 0 1rem; }
-  .docs-content { padding: 1.5rem 1rem 3rem; }
-  .dtab { padding: 0 .85rem; font-size: .78rem; }
+  /* Docs page layout */
+  .docs-intro { padding: 1.25rem 1rem .75rem; }
+  .docs-tabnav-inner { padding: 0 .75rem; }
+  .docs-content { padding: 1.25rem 1rem 3rem; }
+  .dtab { padding: 0 .75rem; font-size: .78rem; gap: 4px; }
+
+  /* Endpoint accordion: hide secondary badge on very small rows */
+  .ep-toggle { padding: .75rem .85rem; gap: 8px; }
 }
 
+/* ── Small mobile (≤480px) ────────────────────────────────── */
 @media (max-width: 480px) {
-  .hero { padding: 3.5rem 1.25rem 2.5rem; }
+  .hero { padding: 3rem 1.1rem 2rem; }
   .stats { grid-template-columns: repeat(2, 1fr); }
-  .status-bar { gap: .75rem; padding: .75rem 1.25rem; }
-  .hero h1 { font-size: clamp(1.9rem, 8vw, 2.6rem); }
+  .status-bar { gap: .65rem; padding: .7rem 1rem; font-size: .78rem; }
+  .hero h1 { font-size: clamp(1.8rem, 8vw, 2.4rem); }
 
   .ep-badges .badge:not(:first-child) { display: none; }
   .docs-meta-item:nth-child(n+3) { display: none; }
-}
+  .dtab { padding: 0 .6rem; font-size: .75rem; }
 
-/* ── Wider screens — show ep-summary ─────────────────────── */
-@media (min-width: 640px) {
-  .ep-summary { display: block; }
+  /* Keep nav brand readable */
+  .nav-logo { font-size: 1.15rem; }
 }
