@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using MongoDB.Driver;
 using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -177,6 +178,11 @@ builder.Services.AddScoped<IMessageService, MessageService>();
 builder.Services.AddScoped<IFileService,    FileService>();
 builder.Services.AddScoped<IAuditService,   AuditService>();
 
+// ── Database Migration & Connection Verification ────────────────────────────
+builder.Services.AddScoped<IDatabaseMigrationService, DatabaseMigrationService>();
+builder.Services.AddScoped<IRedisConnectionService, RedisConnectionService>();
+builder.Services.AddScoped<IDatabaseSeedService, DatabaseSeedService>();
+
 // ── CORS ──────────────────────────────────────────────────────────────────────
 var isDev = builder.Environment.IsDevelopment();
 
@@ -283,5 +289,51 @@ app.MapGet("/health", () => new
         pattern   = "Repository + Unit of Work + MediatR CQRS"
     }
 });
+
+// ── Initialize Database & Run Migrations ──────────────────────────────────────
+try
+{
+    var logger = app.Services.GetRequiredService<ILogger<Program>>();
+    logger.LogInformation("🔄 Starting database initialization...");
+    
+    using (var scope = app.Services.CreateScope())
+    {
+        // Verify MongoDB connection
+        var mongoClient = scope.ServiceProvider.GetRequiredService<IMongoClient>();
+        var mongoDb = scope.ServiceProvider.GetRequiredService<IMongoDatabase>();
+        
+        logger.LogInformation("🔗 Verifying MongoDB connection...");
+        var adminDb = mongoClient.GetDatabase("admin");
+        var pingCommand = new MongoDB.Bson.BsonDocument("ping", 1);
+        await adminDb.RunCommandAsync<MongoDB.Bson.BsonDocument>(pingCommand);
+        logger.LogInformation("✅ MongoDB connection verified");
+        
+        // Run database migrations
+        var migrationService = scope.ServiceProvider.GetRequiredService<IDatabaseMigrationService>();
+        await migrationService.InitializeDatabaseAsync();
+        logger.LogInformation("✅ Database initialization completed");
+        
+        // Seed initial data
+        var seedService = scope.ServiceProvider.GetRequiredService<IDatabaseSeedService>();
+        await seedService.SeedAsync();
+        
+        // Verify Redis connection
+        var redisService = scope.ServiceProvider.GetRequiredService<IRedisConnectionService>();
+        var isRedisHealthy = await redisService.VerifyConnectionAsync();
+        if (isRedisHealthy)
+        {
+            logger.LogInformation("✅ Redis connection verified");
+        }
+        else
+        {
+            logger.LogWarning("⚠️ Redis connection failed - using in-memory cache");
+        }
+    }
+}
+catch (Exception ex)
+{
+    var logger = app.Services.GetRequiredService<ILogger<Program>>();
+    logger.LogError(ex, "❌ Error during database initialization. Some features may not work correctly.");
+}
 
 app.Run();
